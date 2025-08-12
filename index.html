@@ -87,7 +87,7 @@
   <div class="container mx-auto p-4 max-w-5xl">
     <header class="text-center mb-6">
       <div class="mx-auto mb-3" style="max-width:140px;">
-        <img src="https://github.com/villagolfmini/TARJETA-DE-PUNTOS/blob/main/LOGO%20VILLAGOLF%20(5).png" alt="Logo Villagolf" class="w-full" />
+        <img src="URL_DE_TU_LOGO.jpg" alt="Logo Villagolf" class="w-full" />
       </div>
       <h1 class="text-2xl md:text-3xl font-extrabold text-teal-600 uppercase">Tarjeta de Puntuación</h1>
       <p class="mt-1 text-sm font-semibold text-red-600">VILLAGOLF GOLFITO</p>
@@ -96,8 +96,306 @@
     <!-- Setup -->
     <section id="setup-section" class="bg-white p-5 rounded-xl mb-6 shadow">
       <h2 class="text-lg font-semibold text-gray-700 mb-3">Configuración del Juego</h2>
-      <div id="player-inputs" class="grid grid-cols-1
+      <div id="player-inputs" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4"></div>
 
+      <div class="flex gap-3 flex-col sm:flex-row">
+        <button id="start-game-btn" class="flex-1 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg">Iniciar Juego</button>
+        <button id="reset-setup-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg">Limpiar Nombres</button>
+      </div>
+      <p class="mt-3 text-sm text-muted">Puede agregar hasta 8 jugadores. En móviles desliza la tabla con el dedo (arriba/abajo y derecha/izquierda).</p>
+    </section>
+
+    <!-- Scorecard -->
+    <section id="scorecard-section" class="hidden mb-6">
+      <div class="flex items-center justify-between mb-3 gap-4">
+        <h2 class="text-lg font-semibold text-gray-700">Tarjeta de Puntuación</h2>
+        <div class="flex gap-2">
+          <button id="reset-game-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg">Nuevo Juego</button>
+          <button id="end-game-btn" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-3 rounded-lg">Finalizar y Ver Ganador</button>
+        </div>
+      </div>
+
+      <div id="table-scroll" class="table-wrapper">
+        <table id="score-table" class="min-w-full">
+          <thead id="scorecard-head"></thead>
+          <tbody id="scorecard-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Results -->
+    <section id="results-section" class="hidden bg-white p-5 rounded-xl shadow mb-6">
+      <h2 class="text-lg font-semibold text-center mb-4">Resultados Finales</h2>
+      <div class="table-wrapper">
+        <table id="results-table" class="w-full">
+          <thead>
+            <tr>
+              <th class="sticky-col font-semibold">Puesto</th>
+              <th class="font-semibold text-left">Jugador</th>
+              <th class="font-semibold">Puntaje</th>
+            </tr>
+          </thead>
+          <tbody id="results-body"></tbody>
+        </table>
+      </div>
+      <div class="mt-4 text-center">
+        <button id="restart-btn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg">Volver a Jugar</button>
+      </div>
+    </section>
+
+    <footer class="text-center text-sm text-gray-600 mt-6">
+      <p class="font-semibold">@villagolfmini</p>
+    </footer>
+  </div>
+
+  <script>
+  (function(){
+    // ELEMENTS
+    const playerInputsContainer = document.getElementById('player-inputs');
+    const startGameBtn = document.getElementById('start-game-btn');
+    const resetSetupBtn = document.getElementById('reset-setup-btn');
+    const setupSection = document.getElementById('setup-section');
+    const scorecardSection = document.getElementById('scorecard-section');
+    const scorecardHead = document.getElementById('scorecard-head');
+    const scorecardBody = document.getElementById('scorecard-body');
+    const resetGameBtn = document.getElementById('reset-game-btn');
+    const endGameBtn = document.getElementById('end-game-btn');
+    const resultsSection = document.getElementById('results-section');
+    const resultsBody = document.getElementById('results-body');
+    const restartBtn = document.getElementById('restart-btn');
+    const tableScroll = document.getElementById('table-scroll');
+
+    // Create 8 player inputs
+    for (let i=1; i<=8; i++){
+      const div = document.createElement('div');
+      div.innerHTML = `
+        <label class="block text-sm font-medium text-gray-700">Jugador ${i}</label>
+        <input type="text" id="player${i}" placeholder="Nombre del Jugador ${i}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400">
+      `;
+      playerInputsContainer.appendChild(div);
+    }
+
+    // Start game
+    startGameBtn.addEventListener('click', () => {
+      const players = [];
+      for (let i=1; i<=8; i++){
+        const val = document.getElementById(`player${i}`).value.trim();
+        if (val) players.push(val);
+      }
+      if (players.length === 0) return showModal('Por favor ingresa al menos un jugador.');
+      setupScorecard(players);
+      setupSection.classList.add('hidden');
+      scorecardSection.classList.remove('hidden');
+      resultsSection.classList.add('hidden');
+    });
+
+    resetSetupBtn.addEventListener('click', () => {
+      for (let i=1; i<=8; i++) document.getElementById(`player${i}`).value = '';
+    });
+
+    resetGameBtn.addEventListener('click', () => {
+      if (!confirm('¿Iniciar un nuevo juego? Se perderán las puntuaciones actuales.')) return;
+      location.reload(); // simple reset
+    });
+
+    restartBtn.addEventListener('click', () => location.reload());
+
+    function setupScorecard(players){
+      // header
+      scorecardHead.innerHTML = '';
+      scorecardBody.innerHTML = '';
+
+      const trHead = document.createElement('tr');
+      let headerHTML = '<th class="sticky-col">Jugador</th>';
+      for (let i=1; i<=9; i++) headerHTML += `<th>${i}</th>`;
+      headerHTML += '<th class="out-in">OUT</th>';
+      for (let i=10; i<=18; i++) headerHTML += `<th>${i}</th>`;
+      headerHTML += '<th class="out-in">IN</th>';
+      headerHTML += '<th class="grand-total">TOTAL</th>';
+      trHead.innerHTML = headerHTML;
+      scorecardHead.appendChild(trHead);
+
+      // rows
+      players.forEach((name, idx) => {
+        const tr = document.createElement('tr');
+        tr.id = `player-row-${idx}`;
+        let rowHTML = `<td class="sticky-col player-name" data-name="${escapeHtml(name)}">${escapeHtml(name)}</td>`;
+
+        for (let hole=1; hole<=18; hole++){
+          rowHTML += `<td><input type="number" min="0" max="20" class="score-input" data-player="${idx}" data-hole="${hole}" inputmode="numeric" pattern="[0-9]*"></td>`;
+          if (hole === 9) {
+            // OUT cell after hole 9 is represented in header, we'll show calculated value in a cell after hole9 inputs
+            // But to keep columns aligned we do not insert extra cell here; instead compute OUT at rendering of totals below.
+          }
+        }
+
+        // append cells for OUT, IN, TOTAL (these will be updated by JS; placeholders)
+        rowHTML += `<td id="out-total-${idx}" class="out-in">0</td>`;
+        rowHTML += `<td id="in-total-${idx}" class="out-in">0</td>`;
+        rowHTML += `<td id="grand-total-${idx}" class="grand-total">0</td>`;
+
+        tr.innerHTML = rowHTML;
+        scorecardBody.appendChild(tr);
+      });
+
+      // Attach input listeners
+      scorecardBody.querySelectorAll('.score-input').forEach(inp => {
+        inp.addEventListener('input', onScoreInput);
+        inp.addEventListener('blur', sanitizeInput);
+      });
+
+      // For touch-friendly dragging behavior (desktop & mobile)
+      enableDragScroll(tableScroll);
+    }
+
+    function onScoreInput(e){
+      const target = e.target;
+      // sanitize (no negative)
+      if (target.value === '') updateScoresForPlayer(target.dataset.player);
+      else {
+        let v = parseInt(target.value) || 0;
+        if (v < 0) v = 0;
+        if (v > 20) v = 20;
+        target.value = v;
+        updateScoresForPlayer(target.dataset.player);
+      }
+    }
+
+    function sanitizeInput(e){
+      const v = parseInt(e.target.value) || 0;
+      e.target.value = v;
+      updateScoresForPlayer(e.target.dataset.player);
+    }
+
+    function updateScoresForPlayer(playerIdx){
+      const tr = document.getElementById(`player-row-${playerIdx}`);
+      if (!tr) return;
+      const inputs = tr.querySelectorAll('input[data-hole]');
+      let out = 0, inn = 0;
+      inputs.forEach(inp => {
+        const hole = parseInt(inp.dataset.hole);
+        const val = parseInt(inp.value) || 0;
+        if (hole <= 9) out += val;
+        else inn += val;
+      });
+      document.getElementById(`out-total-${playerIdx}`).textContent = out;
+      document.getElementById(`in-total-${playerIdx}`).textContent = inn;
+      document.getElementById(`grand-total-${playerIdx}`).textContent = out + inn;
+    }
+
+    function showWinner(){
+      // collect players
+      const rows = Array.from(scorecardBody.querySelectorAll('tr'));
+      const players = rows.map(row => {
+        const name = row.querySelector('.player-name').dataset.name;
+        const totalCell = row.querySelector('[id^="grand-total-"]');
+        const score = parseInt(totalCell.textContent) || 0;
+        return { name, score };
+      });
+
+      // sort ascending (menor puntaje = mejor)
+      players.sort((a,b) => a.score - b.score);
+
+      // disable inputs
+      scorecardBody.querySelectorAll('input').forEach(i => i.disabled = true);
+      endGameBtn.disabled = true;
+
+      // build results table
+      resultsBody.innerHTML = '';
+      const lowest = players.length ? players[0].score : null;
+
+      players.forEach((p, i) => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b';
+        const puesto = i + 1;
+        let nameHtml = escapeHtml(p.name);
+        if (i === 0) nameHtml += ' <span class="trophy" title="Ganador">🏆</span>';
+        tr.innerHTML = `
+          <td class="sticky-col font-bold">${puesto}</td>
+          <td class="text-left font-semibold player-name">${nameHtml}</td>
+          <td class="font-bold">${p.score}</td>
+        `;
+        resultsBody.appendChild(tr);
+      });
+
+      // show results
+      scorecardSection.classList.add('hidden');
+      resultsSection.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    endGameBtn.addEventListener('click', showWinner);
+
+    // Utility: simple modal
+    function showModal(msg){
+      const existing = document.getElementById('simple-modal');
+      if (existing) existing.remove();
+      const modal = document.createElement('div');
+      modal.id = 'simple-modal';
+      modal.style.position = 'fixed';
+      modal.style.inset = '0';
+      modal.style.display = 'flex';
+      modal.style.alignItems = 'center';
+      modal.style.justifyContent = 'center';
+      modal.style.background = 'rgba(0,0,0,0.45)';
+      modal.style.zIndex = '10000';
+      modal.innerHTML = `
+        <div style="background:#fff;padding:18px 22px;border-radius:10px;max-width:90%;box-shadow:0 8px 30px rgba(2,6,23,0.2);text-align:center;">
+          <p style="margin:0 0 12px;font-weight:700;color:#0f172a;">${escapeHtml(msg)}</p>
+          <button id="modal-close" style="background:#06b6d4;color:#fff;padding:8px 14px;border-radius:8px;border:none;font-weight:700;">OK</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      document.getElementById('modal-close').addEventListener('click', () => modal.remove());
+      modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.remove(); });
+    }
+
+    // Escape HTML utility
+    function escapeHtml(str){
+      return String(str).replace(/[&<>"'`=\/]/g, function(s){
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[s];
+      });
+    }
+
+    // Enable drag-to-scroll (works on desktop & mobile)
+    function enableDragScroll(wrapper){
+      let isDown = false, startX, startY, scrollLeft, scrollTop;
+      wrapper.addEventListener('pointerdown', (e) => {
+        isDown = true;
+        wrapper.classList.add('dragging');
+        startX = e.clientX;
+        startY = e.clientY;
+        scrollLeft = wrapper.scrollLeft;
+        scrollTop = wrapper.scrollTop;
+        wrapper.setPointerCapture(e.pointerId);
+      });
+      wrapper.addEventListener('pointermove', (e) => {
+        if (!isDown) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        wrapper.scrollLeft = scrollLeft - dx;
+        wrapper.scrollTop = scrollTop - dy;
+      });
+      wrapper.addEventListener('pointerup', (e) => {
+        isDown = false;
+        wrapper.classList.remove('dragging');
+        wrapper.releasePointerCapture && wrapper.releasePointerCapture(e.pointerId);
+      });
+      wrapper.addEventListener('pointercancel', () => { isDown = false; wrapper.classList.remove('dragging'); });
+      // also support wheel horizontal on desktop trackpads
+      wrapper.addEventListener('wheel', (e) => {
+        if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) return; // normal vertical scroll
+        // allow smooth horizontal scroll when using shift / horizontal wheel
+      }, { passive: true });
+    }
+
+    // Disable any email sending features (as requested) - there is none here
+
+    // initial small UX: focus first input
+    setTimeout(() => document.getElementById('player1').focus(), 300);
+
+  })();
+  </script>
 
 </body>
 </html>
