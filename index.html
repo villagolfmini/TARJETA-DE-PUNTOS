@@ -1,4 +1,4 @@
-<!DOCTYPE html><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -128,6 +128,11 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="mt-6 text-center">
+                    <button id="send-whatsapp-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Enviar a WhatsApp
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -161,6 +166,7 @@
             const endGameContainer = document.getElementById('end-game-container');
             const resultsSection = document.getElementById('results-section');
             const resultsBody = document.getElementById('results-body');
+            const sendWhatsappBtn = document.getElementById('send-whatsapp-btn');
 
             // Generate player input fields
             for (let i = 1; i <= 8; i++) {
@@ -228,7 +234,7 @@
                     playerRow.id = `player-row-${index}`;
                     playerRow.className = 'border-b border-gray-200 dark:border-gray-700';
 
-                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white" data-name="${name}">${name}</td>`;
+                    let rowHTML = `<td class="sticky-col font-bold text-left text-white bg-amber-500" data-name="${name}">${name}</td>`;
                     
                     for (let i = 1; i <= 18; i++) {
                         if (i === 10) {
@@ -293,7 +299,7 @@
                 endGameBtn.disabled = true;
 
                 resultsSection.classList.remove('hidden');
-
+                
                 resultsBody.innerHTML = '';
                 const lowestScore = playerScores.length > 0 ? playerScores[0].score : 0;
 
@@ -308,12 +314,33 @@
                     }
                     
                     playerRow.innerHTML = `
-                        <td class="sticky-col font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white">${position}</td>
+                        <td class="sticky-col font-bold text-left text-white bg-white dark:bg-gray-800 dark:text-white">${position}</td>
                         <td class="font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white">${playerNameHTML}</td>
                         <td class="font-bold">${player.score}</td>
                     `;
                     resultsBody.appendChild(playerRow);
                 });
+            }
+
+            sendWhatsappBtn.addEventListener('click', sendToWhatsApp);
+
+            function sendToWhatsApp() {
+                const resultsTable = document.getElementById('results-body');
+                let message = "¡Resultados de Villagolf Golfito!\n\n";
+                
+                const rows = resultsTable.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const position = row.children[0].textContent;
+                    const playerName = row.children[1].textContent.replace(' 🏆', '').trim();
+                    const score = row.children[2].textContent;
+                    message += `${position}. ${playerName}: ${score} puntos\n`;
+                });
+
+                message += `\nConsulta la tabla completa aquí:\nhttps://villagolfmini.github.io/TARJETA-DE-PUNTOS/`;
+                
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
             }
 
             function showModal(message) {
@@ -366,142 +393,4 @@
         });
     </script>
 </body>
-</html><html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarjeta de Puntuación - Villagolf</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-        .score-input {
-            width: 50px;
-            height: 40px;
-            text-align: center;
-            border-radius: 0.5rem;
-            border: 1px solid #D1D5DB;
-            -moz-appearance: textfield;
-        }
-        .score-input::-webkit-outer-spin-button,
-        .score-input::-webkit-inner-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
-        }
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .table-container::-webkit-scrollbar {
-            height: 8px;
-        }
-        .table-container::-webkit-scrollbar-thumb {
-            background-color: #888;
-            border-radius: 10px;
-        }
-        .table-container::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        th, td {
-            white-space: nowrap;
-            padding: 0.75rem;
-        }
-        .sticky-col {
-            position: -webkit-sticky;
-            position: sticky;
-            left: 0;
-            background-color: white;
-            z-index: 10;
-        }
-        .dark .sticky-col {
-            background-color: #1F2937;
-        }
-        .trophy {
-            color: #f59e0b; /* amber-500 */
-        }
-        .social-logo {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-            display: inline-block;
-        }
-        #scorecard-section table {
-            min-width: 600px;
-        }
-        #results-table th:first-child,
-        #results-table td:first-child {
-            width: 50px;
-            padding-left: 0.25rem;
-            padding-right: 0.25rem;
-            text-align: center;
-        }
-    </style>
-</head>
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
-
-    <div class="container mx-auto p-4 max-w-7xl">
-        <header class="text-center mb-6">
-            <h1 class="text-3xl md:text-4xl font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Tarjeta de Puntuación</h1>
-            <p class="text-red-600 dark:text-red-500 mt-2 text-lg font-bold">VILLAGOLF GOLFITO</p>
-        </header>
-
-        <div id="setup-section" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-700 dark:text-gray-300">Configuración del Juego</h2>
-            <div id="player-inputs" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            </div>
-            <button id="start-game-btn" class="mt-6 w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-                Iniciar Juego
-            </button>
-        </div>
-
-        <div id="scorecard-section" class="hidden">
-            <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
-                <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300">Tarjeta de Puntuación</h2>
-                <button id="reset-game-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
-                    Nuevo Juego
-                </button>
-            </div>
-            <div class="table-container bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
-                <table class="w-full text-center">
-                    <thead id="scorecard-head" class="bg-gray-200 dark:bg-gray-700 text-sm uppercase">
-                    </thead>
-                    <tbody id="scorecard-body">
-                    </tbody>
-                </table>
-            </div>
-            <div id="end-game-container" class="mt-6 text-center">
-                <button id="end-game-btn" class="w-full md:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
-                    Finalizar y Ver Ganador
-                </button>
-            </div>
-
-            <div id="results-section" class="hidden bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mt-8">
-                <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700 dark:text-gray-300">Resultados Finales</h2>
-                <div class="table-container overflow-hidden">
-                    <table id="results-table" class="w-full text-center">
-                        <thead class="bg-gray-200 dark:bg-gray-700 text-sm uppercase">
-                            <tr>
-                                <th class="sticky-col font-semibold">Puesto</th>
-                                <th class="font-semibold text-left">Jugador</th>
-                                <th class="font-semibold">Puntaje</th>
-                            </tr>
-                        </thead>
-                        <tbody id="results-body">
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <footer class="bg-gray-200 dark:bg-gray-800 text-center p-4 mt-8 transition-colors duration-300">
-        <p class="text-gray-600 dark:text-gray-400 font-bold mb-2">@villagolfmini</p>
-        <div class="flex justify-center space-x-4">
-            <a href="https://www.instagram.com/villagolfmini" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-pink-500 transition-colors duration-200">
-                <svg class="social-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M12 0c-3.879 0-4.372.016-5.882.083-1.509.066-2.54.316-3.447.674-.937.368-1.79.99-2.564 1.764s-1.396 1.627-1.764 2.564c-.358.907-.608 1.938-.674 3.447-.067 1.51-.083 2.003-.083 5.882s.016 4.372.083 5.882c.066 1.509.316 2.54.674 3.447.368.937.99 1.79 1.764 2.564s1.627 1.396 2.564 1.764c.907.358 1.938.608 3.447.674 1.51.067 2.003.083 5.882.083s4.372-.016 5.882-.083c1.509-.066 2.54-.316 3.447-.674.937-.368 1.79-.99 2.564-1.764s1.396-1.627 1.764-2.564c.358-.907.608-1.938.674-3.447.067-1.51.083-2.003.083-5.882s-.016-4.372-.083-5.882c-.066-1.509-.316-2.54-.674-3.447-.368-.937-.99-1.79-1.764-2.564s-1
+</html>
