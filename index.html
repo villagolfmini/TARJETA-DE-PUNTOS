@@ -27,7 +27,7 @@
         }
         .table-container {
             width: 100%;
-            overflow-x: auto;
+            overflow-x: auto; /* Esta es la propiedad clave para el desplazamiento horizontal */
             -webkit-overflow-scrolling: touch;
         }
         .table-container::-webkit-scrollbar {
@@ -96,7 +96,7 @@
             <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300">Tarjeta de Puntuación</h2>
             </div>
-            <div class="table-container bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+            <div class="table-container bg-white dark:bg-gray-800 rounded-xl shadow-lg">
                 <table class="w-full text-center">
                     <thead id="scorecard-head" class="bg-gray-200 dark:bg-gray-700 text-sm uppercase">
                     </thead>
@@ -112,7 +112,7 @@
 
             <div id="results-section" class="hidden bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mt-8">
                 <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700 dark:text-gray-300">Resultados Finales</h2>
-                <div class="table-container overflow-hidden">
+                <div class="table-container">
                     <table id="results-table" class="w-full text-center">
                         <thead class="bg-gray-200 dark:bg-gray-700 text-sm uppercase">
                             <tr>
