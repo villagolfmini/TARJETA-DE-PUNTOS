@@ -1,401 +1,388 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tarjeta de Puntuación - Villagolf</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root { --bg: #f3f4f6; --card: #ffffff; --accent: #0d9488; --muted: #6b7280; }
-    html,body { height:100%; }
-    body {
-      font-family: 'Inter', sans-serif;
-      -webkit-font-smoothing:antialiased;
-      -moz-osx-font-smoothing:grayscale;
-      background:var(--bg);
-      color:#111827;
-    }
-
-    /* Inputs */
-    .score-input {
-      width: 52px;
-      height: 40px;
-      text-align:center;
-      border-radius:.5rem;
-      border:1px solid #e5e7eb;
-      -moz-appearance:textfield;
-      font-weight:600;
-      background: #f9fafb;
-    }
-    .score-input::-webkit-outer-spin-button,
-    .score-input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
-
-    /* Table container allows both horizontal and vertical scrolling on touch */
-    .table-wrapper {
-      width:100%;
-      overflow:auto; /* allows both directions */
-      -webkit-overflow-scrolling: touch;
-      touch-action: pan-y pan-x;
-      background:var(--card);
-      border-radius: .75rem;
-      box-shadow: 0 6px 18px rgba(15,23,42,0.06);
-    }
-
-    table { border-collapse: collapse; width: max-content; min-width:100%; }
-    th, td { padding: .6rem .75rem; white-space:nowrap; vertical-align:middle; border-bottom: 1px solid #e6e6e6; }
-    thead th { background:#f3f4f6; font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; color: #374151; }
-
-    /* Sticky first column (player names / position) */
-    .sticky-col {
-      position: sticky;
-      left: 0;
-      z-index: 20;
-      background: var(--card);
-      box-shadow: 2px 0 0 rgba(0,0,0,0.03);
-    }
-
-    /* Player name style: oscuro, negrita sobre fondo claro */
-    .player-name {
-      color: #0f172a; /* very dark */
-      font-weight: 800;
-      text-align: left;
-      padding-left: .9rem;
-      background: var(--card);
-    }
-
-    /* Totals */
-    .out-in { background:#ecfeff; font-weight:700; color:#0f766e; }
-    .grand-total { background:#ecfccb; font-weight:800; color:#166534; font-size:1.05rem; }
-
-    /* Trophy */
-    .trophy { font-size:1.05rem; color: #f59e0b; margin-left:6px; vertical-align:middle; }
-
-    /* Small screens tweaks */
-    @media (max-width:640px) {
-      .score-input { width:44px; height:36px; font-size:0.95rem; }
-      th, td { padding: .45rem .6rem; }
-      h1 { font-size:1.35rem; }
-    }
-
-    /* Draggable cursor for desktop */
-    .table-wrapper.dragging { cursor: grabbing; cursor: -webkit-grabbing; }
-  </style>
-</head>
-<body>
-
-  <div class="container mx-auto p-4 max-w-5xl">
-    <header class="text-center mb-6">
-      <div class="mx-auto mb-3" style="max-width:140px;">
-        <img src="https://github.com/villagolfmini/TARJETA-DE-PUNTOS/blob/main/LOGO%20VILLAGOLF%20(5).png" alt="Logo Villagolf" class="w-full" />
-      </div>
-      <h1 class="text-2xl md:text-3xl font-extrabold text-teal-600 uppercase">Tarjeta de Puntuación</h1>
-      <p class="mt-1 text-sm font-semibold text-red-600">VILLAGOLF GOLFITO</p>
-    </header>
-
-    <!-- Setup -->
-    <section id="setup-section" class="bg-white p-5 rounded-xl mb-6 shadow">
-      <h2 class="text-lg font-semibold text-gray-700 mb-3">Configuración del Juego</h2>
-      <div id="player-inputs" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-4"></div>
-
-      <div class="flex gap-3 flex-col sm:flex-row">
-        <button id="start-game-btn" class="flex-1 bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg">Iniciar Juego</button>
-        <button id="reset-setup-btn" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg">Limpiar Nombres</button>
-      </div>
-      <p class="mt-3 text-sm text-muted">Puede agregar hasta 8 jugadores. En móviles desliza la tabla con el dedo (arriba/abajo y derecha/izquierda).</p>
-    </section>
-
-    <!-- Scorecard -->
-    <section id="scorecard-section" class="hidden mb-6">
-      <div class="flex items-center justify-between mb-3 gap-4">
-        <h2 class="text-lg font-semibold text-gray-700">Tarjeta de Puntuación</h2>
-        <div class="flex gap-2">
-          <button id="reset-game-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-3 rounded-lg">Nuevo Juego</button>
-          <button id="end-game-btn" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-3 rounded-lg">Finalizar y Ver Ganador</button>
-        </div>
-      </div>
-
-      <div id="table-scroll" class="table-wrapper">
-        <table id="score-table" class="min-w-full">
-          <thead id="scorecard-head"></thead>
-          <tbody id="scorecard-body"></tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Results -->
-    <section id="results-section" class="hidden bg-white p-5 rounded-xl shadow mb-6">
-      <h2 class="text-lg font-semibold text-center mb-4">Resultados Finales</h2>
-      <div class="table-wrapper">
-        <table id="results-table" class="w-full">
-          <thead>
-            <tr>
-              <th class="sticky-col font-semibold">Puesto</th>
-              <th class="font-semibold text-left">Jugador</th>
-              <th class="font-semibold">Puntaje</th>
-            </tr>
-          </thead>
-          <tbody id="results-body"></tbody>
-        </table>
-      </div>
-      <div class="mt-4 text-center">
-        <button id="restart-btn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-lg">Volver a Jugar</button>
-      </div>
-    </section>
-
-    <footer class="text-center text-sm text-gray-600 mt-6">
-      <p class="font-semibold">@villagolfmini</p>
-    </footer>
-  </div>
-
-  <script>
-  (function(){
-    // ELEMENTS
-    const playerInputsContainer = document.getElementById('player-inputs');
-    const startGameBtn = document.getElementById('start-game-btn');
-    const resetSetupBtn = document.getElementById('reset-setup-btn');
-    const setupSection = document.getElementById('setup-section');
-    const scorecardSection = document.getElementById('scorecard-section');
-    const scorecardHead = document.getElementById('scorecard-head');
-    const scorecardBody = document.getElementById('scorecard-body');
-    const resetGameBtn = document.getElementById('reset-game-btn');
-    const endGameBtn = document.getElementById('end-game-btn');
-    const resultsSection = document.getElementById('results-section');
-    const resultsBody = document.getElementById('results-body');
-    const restartBtn = document.getElementById('restart-btn');
-    const tableScroll = document.getElementById('table-scroll');
-
-    // Create 8 player inputs
-    for (let i=1; i<=8; i++){
-      const div = document.createElement('div');
-      div.innerHTML = `
-        <label class="block text-sm font-medium text-gray-700">Jugador ${i}</label>
-        <input type="text" id="player${i}" placeholder="Nombre del Jugador ${i}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-400">
-      `;
-      playerInputsContainer.appendChild(div);
-    }
-
-    // Start game
-    startGameBtn.addEventListener('click', () => {
-      const players = [];
-      for (let i=1; i<=8; i++){
-        const val = document.getElementById(`player${i}`).value.trim();
-        if (val) players.push(val);
-      }
-      if (players.length === 0) return showModal('Por favor ingresa al menos un jugador.');
-      setupScorecard(players);
-      setupSection.classList.add('hidden');
-      scorecardSection.classList.remove('hidden');
-      resultsSection.classList.add('hidden');
-    });
-
-    resetSetupBtn.addEventListener('click', () => {
-      for (let i=1; i<=8; i++) document.getElementById(`player${i}`).value = '';
-    });
-
-    resetGameBtn.addEventListener('click', () => {
-      if (!confirm('¿Iniciar un nuevo juego? Se perderán las puntuaciones actuales.')) return;
-      location.reload(); // simple reset
-    });
-
-    restartBtn.addEventListener('click', () => location.reload());
-
-    function setupScorecard(players){
-      // header
-      scorecardHead.innerHTML = '';
-      scorecardBody.innerHTML = '';
-
-      const trHead = document.createElement('tr');
-      let headerHTML = '<th class="sticky-col">Jugador</th>';
-      for (let i=1; i<=9; i++) headerHTML += `<th>${i}</th>`;
-      headerHTML += '<th class="out-in">OUT</th>';
-      for (let i=10; i<=18; i++) headerHTML += `<th>${i}</th>`;
-      headerHTML += '<th class="out-in">IN</th>';
-      headerHTML += '<th class="grand-total">TOTAL</th>';
-      trHead.innerHTML = headerHTML;
-      scorecardHead.appendChild(trHead);
-
-      // rows
-      players.forEach((name, idx) => {
-        const tr = document.createElement('tr');
-        tr.id = `player-row-${idx}`;
-        let rowHTML = `<td class="sticky-col player-name" data-name="${escapeHtml(name)}">${escapeHtml(name)}</td>`;
-
-        for (let hole=1; hole<=18; hole++){
-          rowHTML += `<td><input type="number" min="0" max="20" class="score-input" data-player="${idx}" data-hole="${hole}" inputmode="numeric" pattern="[0-9]*"></td>`;
-          if (hole === 9) {
-            // OUT cell after hole 9 is represented in header, we'll show calculated value in a cell after hole9 inputs
-            // But to keep columns aligned we do not insert extra cell here; instead compute OUT at rendering of totals below.
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarjeta de Puntuación - Villagolf</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
+        .score-input {
+            width: 50px;
+            height: 40px;
+            text-align: center;
+            border-radius: 0.5rem;
+            border: 1px solid #D1D5DB;
+            -moz-appearance: textfield;
+        }
+        .score-input::-webkit-outer-spin-button,
+        .score-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        th, td {
+            white-space: nowrap;
+            padding: 0.75rem;
+        }
+        .sticky-col {
+            position: -webkit-sticky;
+            position: sticky;
+            left: 0;
+            background-color: white;
+            z-index: 10;
+        }
+        .dark .sticky-col {
+            background-color: #1F2937;
+        }
+        .trophy {
+            color: #f59e0b; /* amber-500 */
+        }
+        .logo-container {
+            max-width: 150px; /* Ajusta el tamaño del logo */
+            margin: 0 auto;
+        }
+        .social-logo {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
 
-        // append cells for OUT, IN, TOTAL (these will be updated by JS; placeholders)
-        rowHTML += `<td id="out-total-${idx}" class="out-in">0</td>`;
-        rowHTML += `<td id="in-total-${idx}" class="out-in">0</td>`;
-        rowHTML += `<td id="grand-total-${idx}" class="grand-total">0</td>`;
+    <div class="container mx-auto p-4 max-w-7xl">
+        <header class="text-center mb-6">
+            <div class="logo-container mb-4">
+                <img src="URL_DE_TU_LOGO.jpg" alt="Logo Villagolf" class="w-full">
+            </div>
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Tarjeta de Puntuación</h1>
+            <p class="text-red-600 dark:text-red-500 mt-2 text-lg font-bold">VILLAGOLF GOLFITO</p>
+        </header>
 
-        tr.innerHTML = rowHTML;
-        scorecardBody.appendChild(tr);
-      });
-
-      // Attach input listeners
-      scorecardBody.querySelectorAll('.score-input').forEach(inp => {
-        inp.addEventListener('input', onScoreInput);
-        inp.addEventListener('blur', sanitizeInput);
-      });
-
-      // For touch-friendly dragging behavior (desktop & mobile)
-      enableDragScroll(tableScroll);
-    }
-
-    function onScoreInput(e){
-      const target = e.target;
-      // sanitize (no negative)
-      if (target.value === '') updateScoresForPlayer(target.dataset.player);
-      else {
-        let v = parseInt(target.value) || 0;
-        if (v < 0) v = 0;
-        if (v > 20) v = 20;
-        target.value = v;
-        updateScoresForPlayer(target.dataset.player);
-      }
-    }
-
-    function sanitizeInput(e){
-      const v = parseInt(e.target.value) || 0;
-      e.target.value = v;
-      updateScoresForPlayer(e.target.dataset.player);
-    }
-
-    function updateScoresForPlayer(playerIdx){
-      const tr = document.getElementById(`player-row-${playerIdx}`);
-      if (!tr) return;
-      const inputs = tr.querySelectorAll('input[data-hole]');
-      let out = 0, inn = 0;
-      inputs.forEach(inp => {
-        const hole = parseInt(inp.dataset.hole);
-        const val = parseInt(inp.value) || 0;
-        if (hole <= 9) out += val;
-        else inn += val;
-      });
-      document.getElementById(`out-total-${playerIdx}`).textContent = out;
-      document.getElementById(`in-total-${playerIdx}`).textContent = inn;
-      document.getElementById(`grand-total-${playerIdx}`).textContent = out + inn;
-    }
-
-    function showWinner(){
-      // collect players
-      const rows = Array.from(scorecardBody.querySelectorAll('tr'));
-      const players = rows.map(row => {
-        const name = row.querySelector('.player-name').dataset.name;
-        const totalCell = row.querySelector('[id^="grand-total-"]');
-        const score = parseInt(totalCell.textContent) || 0;
-        return { name, score };
-      });
-
-      // sort ascending (menor puntaje = mejor)
-      players.sort((a,b) => a.score - b.score);
-
-      // disable inputs
-      scorecardBody.querySelectorAll('input').forEach(i => i.disabled = true);
-      endGameBtn.disabled = true;
-
-      // build results table
-      resultsBody.innerHTML = '';
-      const lowest = players.length ? players[0].score : null;
-
-      players.forEach((p, i) => {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b';
-        const puesto = i + 1;
-        let nameHtml = escapeHtml(p.name);
-        if (i === 0) nameHtml += ' <span class="trophy" title="Ganador">🏆</span>';
-        tr.innerHTML = `
-          <td class="sticky-col font-bold">${puesto}</td>
-          <td class="text-left font-semibold player-name">${nameHtml}</td>
-          <td class="font-bold">${p.score}</td>
-        `;
-        resultsBody.appendChild(tr);
-      });
-
-      // show results
-      scorecardSection.classList.add('hidden');
-      resultsSection.classList.remove('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    endGameBtn.addEventListener('click', showWinner);
-
-    // Utility: simple modal
-    function showModal(msg){
-      const existing = document.getElementById('simple-modal');
-      if (existing) existing.remove();
-      const modal = document.createElement('div');
-      modal.id = 'simple-modal';
-      modal.style.position = 'fixed';
-      modal.style.inset = '0';
-      modal.style.display = 'flex';
-      modal.style.alignItems = 'center';
-      modal.style.justifyContent = 'center';
-      modal.style.background = 'rgba(0,0,0,0.45)';
-      modal.style.zIndex = '10000';
-      modal.innerHTML = `
-        <div style="background:#fff;padding:18px 22px;border-radius:10px;max-width:90%;box-shadow:0 8px 30px rgba(2,6,23,0.2);text-align:center;">
-          <p style="margin:0 0 12px;font-weight:700;color:#0f172a;">${escapeHtml(msg)}</p>
-          <button id="modal-close" style="background:#06b6d4;color:#fff;padding:8px 14px;border-radius:8px;border:none;font-weight:700;">OK</button>
+        <div id="setup-section" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700 dark:text-gray-300">Configuración del Juego</h2>
+            <div id="player-inputs" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                </div>
+            <button id="start-game-btn" class="mt-6 w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                Iniciar Juego
+            </button>
         </div>
-      `;
-      document.body.appendChild(modal);
-      document.getElementById('modal-close').addEventListener('click', () => modal.remove());
-      modal.addEventListener('click', (ev) => { if (ev.target === modal) modal.remove(); });
-    }
 
-    // Escape HTML utility
-    function escapeHtml(str){
-      return String(str).replace(/[&<>"'`=\/]/g, function(s){
-        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;','/':'&#x2F;','`':'&#x60;','=':'&#x3D;'})[s];
-      });
-    }
+        <div id="scorecard-section" class="hidden">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                <h2 class="text-2xl font-semibold text-gray-700 dark:text-gray-300">Tarjeta de Puntuación</h2>
+                <button id="reset-game-btn" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Nuevo Juego
+                </button>
+            </div>
+            <div class="table-container bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
+                <table class="w-full text-center">
+                    <thead id="scorecard-head" class="bg-gray-200 dark:bg-gray-700 text-sm uppercase">
+                        </thead>
+                    <tbody id="scorecard-body">
+                        </tbody>
+                </table>
+            </div>
+            <div id="end-game-container" class="mt-6 text-center">
+                <button id="end-game-btn" class="w-full md:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                    Finalizar y Ver Ganador
+                </button>
+            </div>
+        </div>
 
-    // Enable drag-to-scroll (works on desktop & mobile)
-    function enableDragScroll(wrapper){
-      let isDown = false, startX, startY, scrollLeft, scrollTop;
-      wrapper.addEventListener('pointerdown', (e) => {
-        isDown = true;
-        wrapper.classList.add('dragging');
-        startX = e.clientX;
-        startY = e.clientY;
-        scrollLeft = wrapper.scrollLeft;
-        scrollTop = wrapper.scrollTop;
-        wrapper.setPointerCapture(e.pointerId);
-      });
-      wrapper.addEventListener('pointermove', (e) => {
-        if (!isDown) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        wrapper.scrollLeft = scrollLeft - dx;
-        wrapper.scrollTop = scrollTop - dy;
-      });
-      wrapper.addEventListener('pointerup', (e) => {
-        isDown = false;
-        wrapper.classList.remove('dragging');
-        wrapper.releasePointerCapture && wrapper.releasePointerCapture(e.pointerId);
-      });
-      wrapper.addEventListener('pointercancel', () => { isDown = false; wrapper.classList.remove('dragging'); });
-      // also support wheel horizontal on desktop trackpads
-      wrapper.addEventListener('wheel', (e) => {
-        if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) return; // normal vertical scroll
-        // allow smooth horizontal scroll when using shift / horizontal wheel
-      }, { passive: true });
-    }
+        <div id="results-section" class="hidden bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700 dark:text-gray-300">Resultados Finales</h2>
+            <div class="table-container overflow-hidden">
+                <table id="results-table" class="w-full text-center">
+                    <thead class="bg-gray-200 dark:bg-gray-700 text-sm uppercase">
+                        <tr>
+                            <th class="sticky-col font-semibold">Puesto</th>
+                            <th class="font-semibold text-left">Jugador</th>
+                            <th class="font-semibold">Puntaje</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-body">
+                        </tbody>
+                </table>
+            </div>
+            <div class="mt-6 text-center">
+                <button id="email-results-btn" class="w-full md:w-auto bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                    Enviar Resultados por Email
+                </button>
+            </div>
+        </div>
+    </div>
 
-    // Disable any email sending features (as requested) - there is none here
+    <footer class="bg-gray-200 dark:bg-gray-800 text-center p-4 mt-8 transition-colors duration-300">
+        <p class="text-gray-600 dark:text-gray-400 font-bold mb-2">@villagolfmini</p>
+        <div class="flex justify-center space-x-4">
+            <a href="https://www.instagram.com/villagolfmini" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-pink-500 transition-colors duration-200">
+                <svg class="social-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M12 0c-3.879 0-4.372.016-5.882.083-1.509.066-2.54.316-3.447.674-.937.368-1.79.99-2.564 1.764s-1.396 1.627-1.764 2.564c-.358.907-.608 1.938-.674 3.447-.067 1.51-.083 2.003-.083 5.882s.016 4.372.083 5.882c.066 1.509.316 2.54.674 3.447.368.937.99 1.79 1.764 2.564s1.627 1.396 2.564 1.764c.907.358 1.938.608 3.447.674 1.51.067 2.003.083 5.882.083s4.372-.016 5.882-.083c1.509-.066 2.54-.316 3.447-.674.937-.368 1.79-.99 2.564-1.764s1.396-1.627 1.764-2.564c.358-.907.608-1.938.674-3.447.067-1.51.083-2.003.083-5.882s-.016-4.372-.083-5.882c-.066-1.509-.316-2.54-.674-3.447-.368-.937-.99-1.79-1.764-2.564s-1.627-1.396-2.564-1.764c-.907-.358-1.938-.608-3.447-.674-1.51-.067-2.003-.083-5.882-.083zm0 2.164c3.81 0 4.28.014 5.768.08.718.031 1.103.155 1.353.255.45.18.79.404 1.13.743s.563.68.743 1.13c.1.25.224.635.255 1.353.066 1.488.08 1.958.08 5.768s-.014 4.28-.08 5.768c-.031.718-.155 1.103-.255 1.353-.18.45-.404.79-.743 1.13s-.68.563-1.13.743c-.25.1-.635.224-1.353.255-1.488.066-1.958.08-5.768.08s-4.28-.014-5.768-.08c-.718-.031-1.103-.155-1.353-.255-.45-.18-.79-.404-1.13-.743s-.563-.68-.743-1.13c-.1-.25-.224-.635-.255-1.353-.066-1.488-.08-1.958-.08-5.768s.014-4.28.08-5.768c.031-.718.155-1.103.255-1.353.18-.45.404-.79.743-1.13s.68-.563 1.13-.743c.25-.1.635-.224 1.353-.255 1.488-.066 1.958-.08 5.768-.08zM12 6.846c-2.84 0-5.154 2.314-5.154 5.154s2.314 5.154 5.154 5.154 5.154-2.314 5.154-5.154-2.314-5.154-5.154-5.154zm0 8.528c-1.868 0-3.374-1.506-3.374-3.374s1.506-3.374 3.374-3.374 3.374 1.506 3.374 3.374-1.506 3.374-3.374 3.374zm5.836-9.67c-.636 0-1.15-.514-1.15-1.15s.514-1.15 1.15-1.15c.636 0 1.15.514 1.15 1.15s-.514 1.15-1.15 1.15z"/>
+                </svg>
+            </a>
+            <a href="https://www.facebook.com/villagolfmini" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">
+                <svg class="social-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.999c0-.879.444-1.001 1.114-1.001h2.886v-3h-3.886c-4.145 0-5.114 3.292-5.114 4.886v2.114z"/>
+                </svg>
+            </a>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const playerInputsContainer = document.getElementById('player-inputs');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const setupSection = document.getElementById('setup-section');
+            const scorecardSection = document.getElementById('scorecard-section');
+            const scorecardHead = document.getElementById('scorecard-head');
+            const scorecardBody = document.getElementById('scorecard-body');
+            const resetGameBtn = document.getElementById('reset-game-btn');
+            const endGameBtn = document.getElementById('end-game-btn');
+            const endGameContainer = document.getElementById('end-game-container');
+            const resultsSection = document.getElementById('results-section');
+            const resultsBody = document.getElementById('results-body');
+            const emailResultsBtn = document.getElementById('email-results-btn');
 
-    // initial small UX: focus first input
-    setTimeout(() => document.getElementById('player1').focus(), 300);
+            // Generate player input fields
+            for (let i = 1; i <= 8; i++) {
+                const inputDiv = document.createElement('div');
+                inputDiv.innerHTML = `
+                    <label for="player${i}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Jugador ${i}</label>
+                    <input type="text" id="player${i}" name="player${i}" placeholder="Nombre del Jugador ${i}" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                `;
+                playerInputsContainer.appendChild(inputDiv);
+            }
 
-  })();
-  </script>
+            startGameBtn.addEventListener('click', function() {
+                const playerNames = [];
+                for (let i = 1; i <= 8; i++) {
+                    const input = document.getElementById(`player${i}`);
+                    if (input.value.trim() !== '') {
+                        playerNames.push(input.value.trim());
+                    }
+                }
+
+                if (playerNames.length > 0) {
+                    setupScorecard(playerNames);
+                    setupSection.classList.add('hidden');
+                    scorecardSection.classList.remove('hidden');
+                    endGameContainer.classList.remove('hidden');
+                    endGameBtn.disabled = false;
+                } else {
+                    showModal('Por favor, ingresa el nombre de al menos un jugador.');
+                }
+            });
+
+            resetGameBtn.addEventListener('click', function() {
+                if(confirm('¿Estás seguro de que quieres empezar un nuevo juego? Se perderán todas las puntuaciones.')) {
+                    scorecardSection.classList.add('hidden');
+                    endGameContainer.classList.add('hidden');
+                    resultsSection.classList.add('hidden');
+                    setupSection.classList.remove('hidden');
+                    scorecardHead.innerHTML = '';
+                    scorecardBody.innerHTML = '';
+                    resultsBody.innerHTML = '';
+                    // Clear player name inputs
+                    for (let i = 1; i <= 8; i++) {
+                        document.getElementById(`player${i}`).value = '';
+                    }
+                }
+            });
+            
+            endGameBtn.addEventListener('click', showWinner);
+            emailResultsBtn.addEventListener('click', sendEmail);
+
+            function setupScorecard(players) {
+                scorecardHead.innerHTML = '';
+                scorecardBody.innerHTML = '';
+
+                const headerRow = document.createElement('tr');
+                let headerHTML = '<th class="sticky-col font-semibold">Jugador</th>';
+                for (let i = 1; i <= 9; i++) headerHTML += `<th>${i}</th>`;
+                headerHTML += '<th class="font-semibold bg-teal-100 dark:bg-teal-800">OUT</th>';
+                for (let i = 10; i <= 18; i++) headerHTML += `<th>${i}</th>`;
+                headerHTML += '<th class="font-semibold bg-teal-100 dark:bg-teal-800">IN</th>';
+                headerHTML += '<th class="font-semibold bg-green-100 dark:bg-green-800">TOTAL</th>';
+                headerRow.innerHTML = headerHTML;
+                scorecardHead.appendChild(headerRow);
+                
+                players.forEach((name, index) => {
+                    const playerRow = document.createElement('tr');
+                    playerRow.id = `player-row-${index}`;
+                    playerRow.className = 'border-b border-gray-200 dark:border-gray-700';
+
+                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white" data-name="${name}">${name}</td>`;
+                    
+                    for (let i = 1; i <= 18; i++) {
+                        if (i === 10) {
+                            rowHTML += `<td id="out-total-${index}" class="font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900">0</td>`;
+                        }
+                        rowHTML += `<td><input type="number" min="1" max="8" class="score-input bg-gray-50 dark:bg-gray-700" data-player="${index}" data-hole="${i}"></td>`;
+                    }
+                    
+                    rowHTML += `<td id="in-total-${index}" class="font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900">0</td>`;
+                    rowHTML += `<td id="grand-total-${index}" class="font-bold text-xl text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900">0</td>`;
+
+                    playerRow.innerHTML = rowHTML;
+                    scorecardBody.appendChild(playerRow);
+                });
+
+                document.querySelectorAll('.score-input').forEach(input => {
+                    input.addEventListener('input', updateScores);
+                });
+            }
+
+            function updateScores(event) {
+                if (parseInt(event.target.value) > 8) {
+                    event.target.value = 8;
+                }
+
+                const playerIndex = event.target.dataset.player;
+                const playerRow = document.getElementById(`player-row-${playerIndex}`);
+                
+                let outTotal = 0;
+                let inTotal = 0;
+
+                const allInputs = playerRow.querySelectorAll('input[data-hole]');
+                allInputs.forEach(input => {
+                    const hole = parseInt(input.dataset.hole);
+                    const value = parseInt(input.value) || 0;
+                    if (hole <= 9) {
+                        outTotal += value;
+                    } else {
+                        inTotal += value;
+                    }
+                });
+
+                document.getElementById(`out-total-${playerIndex}`).textContent = outTotal;
+                document.getElementById(`in-total-${playerIndex}`).textContent = inTotal;
+                document.getElementById(`grand-total-${playerIndex}`).textContent = outTotal + inTotal;
+            }
+
+            function showWinner() {
+                const playerScores = [];
+                const rows = scorecardBody.querySelectorAll('tr');
+
+                // Gather scores
+                rows.forEach(row => {
+                    const nameCell = row.querySelector('td.sticky-col');
+                    const name = nameCell.dataset.name;
+                    const score = parseInt(row.querySelector('[id^="grand-total-"]').textContent);
+                    playerScores.push({ name: name, score: score });
+                });
+
+                // Sort players by score (lowest first)
+                playerScores.sort((a, b) => a.score - b.score);
+
+                // Disable inputs and buttons
+                document.querySelectorAll('.score-input').forEach(input => input.disabled = true);
+                endGameBtn.disabled = true;
+
+                // Hide scoreboard and show results
+                scorecardSection.classList.add('hidden');
+                resultsSection.classList.remove('hidden');
+
+                // Generate and display results
+                resultsBody.innerHTML = '';
+                const lowestScore = playerScores.length > 0 ? playerScores[0].score : 0;
+
+                playerScores.forEach((player, index) => {
+                    const playerRow = document.createElement('tr');
+                    playerRow.className = 'border-b border-gray-200 dark:border-gray-700';
+                    const position = index + 1;
+                    
+                    let playerNameHTML = player.name;
+                    if (player.score === lowestScore) {
+                        // Add trophy icon
+                        playerNameHTML += ` <span class="trophy" title="Ganador">&#127942;</span>`;
+                    }
+                    
+                    playerRow.innerHTML = `
+                        <td class="sticky-col font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white">${position}</td>
+                        <td class="font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white">${playerNameHTML}</td>
+                        <td class="font-bold">${player.score}</td>
+                    `;
+                    resultsBody.appendChild(playerRow);
+                });
+            }
+
+            function sendEmail() {
+                let subject = encodeURIComponent("Resultados de Minigolf Villagolf");
+                let body = "¡Resultados de la partida en Villagolf Golfito!\n\n";
+
+                const resultsRows = resultsBody.querySelectorAll('tr');
+                resultsRows.forEach(row => {
+                    const position = row.querySelector('td:nth-child(1)').textContent;
+                    const name = row.querySelector('td:nth-child(2)').textContent.trim();
+                    const score = row.querySelector('td:nth-child(3)').textContent;
+                    body += `${position}. ${name}: ${score} puntos\n`;
+                });
+
+                body = encodeURIComponent(body);
+                window.location.href = `mailto:villagolfmini@gmail.com?subject=${subject}&body=${body}`;
+            }
+
+            function showModal(message) {
+                const modal = document.createElement('div');
+                modal.style.position = 'fixed';
+                modal.style.left = '0';
+                modal.style.top = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                modal.style.display = 'flex';
+                modal.style.justifyContent = 'center';
+                modal.style.alignItems = 'center';
+                modal.style.zIndex = '1000';
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.backgroundColor = 'white';
+                modalContent.style.padding = '20px 40px';
+                modalContent.style.borderRadius = '8px';
+                modalContent.style.textAlign = 'center';
+                
+                const text = document.createElement('p');
+                text.textContent = message;
+                text.style.color = 'black';
+                text.style.marginBottom = '20px';
+                
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'OK';
+                closeButton.style.padding = '10px 20px';
+                closeButton.style.border = 'none';
+                closeButton.style.borderRadius = '5px';
+                closeButton.style.backgroundColor = '#10B981'; // Teal-500
+                closeButton.style.color = 'white';
+                closeButton.style.cursor = 'pointer';
+
+                modalContent.appendChild(text);
+                modalContent.appendChild(closeButton);
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+                
+                closeButton.onclick = () => {
+                    document.body.removeChild(modal);
+                };
+                 modal.onclick = (event) => {
+                    if (event.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                };
+            }
+        });
+    </script>
 
 </body>
 </html>
