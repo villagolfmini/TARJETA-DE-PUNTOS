@@ -84,7 +84,7 @@
     <div class="container mx-auto p-4 max-w-7xl">
         <header class="text-center mb-6">
             <h1 class="text-3xl md:text-4xl font-bold uppercase tracking-wider" style="font-family: Arial, sans-serif; color: #e60a0a;">Tarjeta de Juego</h1>
-            <p class="mt-2 text-lg font-bold italic" style="font-family: 'Anton', sans-serif; color: #12bf33;">Villagolf Minigolf</p>
+            <p class="mt-2 text-2xl font-bold" style="font-family: 'Anton', sans-serif; color: #12bf33;">Villagolf Minigolf</p>
         </header>
 
         <div id="setup-section" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
@@ -258,7 +258,7 @@
 
                 const headerRow1 = document.createElement('tr');
                 headerRow1.innerHTML = `
-                    <th rowspan="2" class="sticky-col font-semibold text-gray-900 bg-white dark:bg-gray-700">Jugador</th>
+                    <th rowspan="2" class="sticky-col font-semibold text-gray-900 bg-gray-200 dark:bg-white">Jugador</th>
                     <th colspan="18" class="font-semibold text-white bg-amber-500 dark:bg-amber-600">18 Hoyos</th>
                     <th colspan="3" class="font-semibold"></th>
                 `;
@@ -266,10 +266,10 @@
 
                 const headerRow2 = document.createElement('tr');
                 let headerHTML = '';
-                for (let i = 1; i <= 9; i++) headerHTML += `<th class="bg-white text-black">${i}</th>`;
-                headerHTML += '<th class="font-semibold bg-gray-200 dark:bg-gray-700" style="color: orange;">SUMA</th>';
-                for (let i = 10; i <= 18; i++) headerHTML += `<th class="bg-white text-black">${i}</th>`;
-                headerHTML += '<th class="font-semibold bg-gray-200 dark:bg-gray-700" style="color: orange;">SUMA</th>';
+                for (let i = 1; i <= 9; i++) headerHTML += `<th class="bg-gray-200 dark:bg-gray-700 text-black dark:text-white">${i}</th>`;
+                headerHTML += '<th class="font-semibold bg-orange-100 dark:bg-gray-700 text-orange-900 dark:text-orange-900">SUMA</th>';
+                for (let i = 10; i <= 18; i++) headerHTML += `<th class="bg-gray-200 dark:bg-gray-700 text-black dark:text-white">${i}</th>`;
+                headerHTML += '<th class="font-semibold bg-orange-100 dark:bg-gray-700 text-orange-900 dark:text-orange-900">SUMA</th>';
                 headerHTML += '<th class="font-semibold bg-green-100 dark:bg-green-800">TOTAL</th>';
                 headerRow2.innerHTML = headerHTML;
                 scorecardHead.appendChild(headerRow2);
@@ -279,16 +279,16 @@
                     playerRow.id = `player-row-${index}`;
                     playerRow.className = 'border-b border-gray-200 dark:border-gray-700';
 
-                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-[#12bf33] dark:bg-[#12bf33]" data-name="${name}">${name}</td>`;
+                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-[#12bf33] dark:bg-[#12bf33] text-black" data-name="${name}">${name}</td>`;
                     
                     for (let i = 1; i <= 18; i++) {
                         if (i === 10) {
-                            rowHTML += `<td id="out-total-${index}" class="font-bold bg-gray-200 dark:bg-gray-700" style="color: orange;">0</td>`;
+                            rowHTML += `<td id="out-total-${index}" class="font-bold bg-orange-100 dark:bg-gray-700 text-orange-900 dark:text-orange-900">0</td>`;
                         }
-                        rowHTML += `<td class="bg-white"><input type="number" min="1" max="8" class="score-input" data-player="${index}" data-hole="${i}"></td>`;
+                        rowHTML += `<td class="bg-white dark:bg-gray-800"><input type="number" min="1" max="8" class="score-input" data-player="${index}" data-hole="${i}"></td>`;
                     }
                     
-                    rowHTML += `<td id="in-total-${index}" class="font-bold bg-gray-200 dark:bg-gray-700" style="color: orange;">0</td>`;
+                    rowHTML += `<td id="in-total-${index}" class="font-bold bg-orange-100 dark:bg-gray-700 text-orange-900 dark:text-orange-900">0</td>`;
                     rowHTML += `<td id="grand-total-${index}" class="font-bold text-xl text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900">0</td>`;
 
                     playerRow.innerHTML = rowHTML;
@@ -360,7 +360,7 @@
                     
                     playerRow.innerHTML = `
                         <td class="sticky-col font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white">${position}</td>
-                        <td class="font-bold text-left text-gray-900 bg-white dark:bg-gray-800">${playerNameHTML}</td>
+                        <td class="font-bold text-left text-gray-900 bg-[#12bf33] text-black">${playerNameHTML}</td>
                         <td class="font-bold">${player.score}</td>
                     `;
                     resultsBody.appendChild(playerRow);
