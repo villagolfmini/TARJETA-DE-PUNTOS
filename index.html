@@ -152,4 +152,305 @@
                 </svg>
             </a>
             <a href="https://www.facebook.com/villagolfmini" target="_blank" rel="noopener noreferrer" class="text-gray-600 hover:text-blue-600 transition-colors duration-200">
-                <svg class="social-logo" xmlns
+                <svg class="social-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.999c0-.879.444-1.001 1.114-1.001h2.886v-3h-3.886c-4.145 0-5.114 3.292-5.114 4.886v2.114z"/>
+                </svg>
+            </a>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const playerInputsContainer = document.getElementById('player-inputs');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const setupSection = document.getElementById('setup-section');
+            const scorecardSection = document.getElementById('scorecard-section');
+            const scorecardHead = document.getElementById('scorecard-head');
+            const scorecardBody = document.getElementById('scorecard-body');
+            const resetGameBtn = document.getElementById('reset-game-btn');
+            const endGameBtn = document.getElementById('end-game-btn');
+            const endGameContainer = document.getElementById('end-game-container');
+            const resultsSection = document.getElementById('results-section');
+            const resultsBody = document.getElementById('results-body');
+            const sendWhatsappBtn = document.getElementById('send-whatsapp-btn');
+            const rulesBtn = document.getElementById('rules-btn');
+
+            // Generate player input fields
+            for (let i = 1; i <= 8; i++) {
+                const inputDiv = document.createElement('div');
+                inputDiv.innerHTML = `
+                    <label for="player${i}" class="block text-sm font-medium text-gray-700">Jugador ${i}</label>
+                    <input type="text" id="player${i}" name="player${i}" placeholder="Nombre del Jugador ${i}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 focus:bg-[#12bf33] focus:text-white sm:text-sm">
+                `;
+                playerInputsContainer.appendChild(inputDiv);
+            }
+
+            startGameBtn.addEventListener('click', function() {
+                const playerNames = [];
+                for (let i = 1; i <= 8; i++) {
+                    const input = document.getElementById(`player${i}`);
+                    if (input.value.trim() !== '') {
+                        playerNames.push(input.value.trim());
+                    }
+                }
+
+                if (playerNames.length > 0) {
+                    setupScorecard(playerNames);
+                    setupSection.classList.add('hidden');
+                    scorecardSection.classList.remove('hidden');
+                    endGameContainer.classList.remove('hidden');
+                    endGameBtn.disabled = false;
+                } else {
+                    showModal('Por favor, ingresa el nombre de al menos un jugador.');
+                }
+            });
+
+            resetGameBtn.addEventListener('click', function() {
+                if(confirm('¿Estás seguro de que quieres empezar un nuevo juego? Se perderán todas las puntuaciones.')) {
+                    scorecardSection.classList.add('hidden');
+                    endGameContainer.classList.add('hidden');
+                    resultsSection.classList.add('hidden');
+                    setupSection.classList.remove('hidden');
+                    scorecardHead.innerHTML = '';
+                    scorecardBody.innerHTML = '';
+                    resultsBody.innerHTML = '';
+                    for (let i = 1; i <= 8; i++) {
+                        document.getElementById(`player${i}`).value = '';
+                    }
+                }
+            });
+            
+            rulesBtn.addEventListener('click', function() {
+                showModal(`
+                    <div class="bg-white p-6 rounded-md text-gray-800">
+                        <h3 class="font-bold text-xl mb-4 text-gray-700">REGLAS DE JUEGO Y REGLAMENTO</h3>
+                        <p class="text-left mb-2 text-gray-700">
+                            <strong>Turnos de salida:</strong> El primer golpe en cada hoyo debe jugarse desde el área de salida. El orden de salida para el primer golpe del juego lo eligen los jugadores.<br>
+                            <strong>Turnos posteriores:</strong> En cada hoyo, el jugador cuya bola esté más cerca del hoyo es quien golpea primero.<br>
+                            <strong>Número de Jugadores:</strong> El número máximo de participantes por grupo es de 8 personas.<br>
+                            <strong>Recorrido:</strong> Deben jugar los 18 hoyos en orden consecutivo, sin saltarse ninguno.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Penalizaciones:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            Si la bola sale de los límites de la pista, del área de juego o cae en una trampa de arena o agua, debes colocarla en el césped por donde salió y sumar un punto de penalización.<br>
+                            Si la bola golpea un borde, puedes moverla 10 cm con el palo, sin penalización.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Puntuación:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            El puntaje máximo por cada hoyo es de 8 golpes. Si después de 8 golpes no has logrado meter la bola, anota 8 puntos y pasa al siguiente hoyo.<br>
+                            Gana quien complete los 18 hoyos con el menor puntaje total.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Regla de juego con otras bolas:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            No se permite meter la bola de otro jugador. Si tu bola golpea la de otro jugador y esta entra en el hoyo, la bola golpeada debe ser devuelta a su posición original. Tu golpe sí cuenta para ti y continuas tu juego desde la posición donde se detuvo tu bola.<br>
+                            Si dos bolas quedan pegadas, la que debe jugarse (la más cercana al hoyo) se puede levantar para que la otra no la estorbe. Luego, la bola se coloca de nuevo en su lugar y se juega el golpe.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Restricciones:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            Está prohibido repetir un hoyo o jugar un hoyo adicional. Si lo haces, se considera una ronda de juego adicional.<br>
+                            Prestar un palo a otro visitante genera el cobro de un juego adicional.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Seguridad:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            Está prohibido hacer swing o levantar el palo a más de la altura de la rodilla.<br>
+                            No arrastres los palos, ni los golpees contra rocas, ladrillos o cualquier otra superficie dura que no sea la bola.<br>
+                            Los usuarios se hacen responsables de los implementos en caso de perdida o daño, y cancelarán el valor de la reposición establecido por la caja.<br>
+                            El usuario es responsable de accidentes o daños causados a instalaciones o terceros.<br>
+                            Los menores de 7 años deben jugar acompañados por un adulto responsable.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Lluvia:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            En caso de lluvia, el juego debe suspenderse. Si no has completado 9 hoyos, se te entregará un bono para otro día.<br>
+                        </p>
+                    </div>
+                `);
+            });
+            
+            endGameBtn.addEventListener('click', showWinner);
+
+            function setupScorecard(players) {
+                scorecardHead.innerHTML = '';
+                scorecardBody.innerHTML = '';
+
+                const headerRow1 = document.createElement('tr');
+                headerRow1.innerHTML = `
+                    <th rowspan="2" class="sticky-col font-semibold text-gray-900 bg-gray-200">Jugador</th>
+                    <th colspan="18" class="font-semibold text-white bg-amber-500">18 Hoyos</th>
+                    <th colspan="3" class="font-semibold"></th>
+                `;
+                scorecardHead.appendChild(headerRow1);
+
+                const headerRow2 = document.createElement('tr');
+                let headerHTML = '';
+                for (let i = 1; i <= 9; i++) headerHTML += `<th class="bg-gray-200 text-black">${i}</th>`;
+                headerHTML += '<th class="font-semibold bg-orange-100 text-orange-900">SUMA</th>';
+                for (let i = 10; i <= 18; i++) headerHTML += `<th class="bg-gray-200 text-black">${i}</th>`;
+                headerHTML += '<th class="font-semibold bg-orange-100 text-orange-900">SUMA</th>';
+                headerHTML += '<th class="font-semibold bg-green-100 text-green-900">TOTAL</th>';
+                headerRow2.innerHTML = headerHTML;
+                scorecardHead.appendChild(headerRow2);
+                
+                players.forEach((name, index) => {
+                    const playerRow = document.createElement('tr');
+                    playerRow.id = `player-row-${index}`;
+                    playerRow.className = 'border-b border-gray-200';
+
+                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-white" data-name="${name}">${name}</td>`;
+                    
+                    for (let i = 1; i <= 18; i++) {
+                        if (i === 10) {
+                            rowHTML += `<td id="out-total-${index}" class="font-bold bg-orange-100 text-orange-900">0</td>`;
+                        }
+                        rowHTML += `<td class="bg-white"><input type="number" min="1" max="8" class="score-input bg-white text-black" data-player="${index}" data-hole="${i}"></td>`;
+                    }
+                    
+                    rowHTML += `<td id="in-total-${index}" class="font-bold bg-orange-100 text-orange-900">0</td>`;
+                    rowHTML += `<td id="grand-total-${index}" class="font-bold text-xl text-green-600 bg-green-50">0</td>`;
+
+                    playerRow.innerHTML = rowHTML;
+                    scorecardBody.appendChild(playerRow);
+                });
+
+                document.querySelectorAll('.score-input').forEach(input => {
+                    input.addEventListener('input', updateScores);
+                });
+            }
+
+            function updateScores(event) {
+                if (parseInt(event.target.value) > 8) {
+                    event.target.value = 8;
+                }
+
+                const playerIndex = event.target.dataset.player;
+                const playerRow = document.getElementById(`player-row-${playerIndex}`);
+                
+                let outTotal = 0;
+                let inTotal = 0;
+
+                const allInputs = playerRow.querySelectorAll('input[data-hole]');
+                allInputs.forEach(input => {
+                    const hole = parseInt(input.dataset.hole);
+                    const value = parseInt(input.value) || 0;
+                    if (hole <= 9) {
+                        outTotal += value;
+                    } else {
+                        inTotal += value;
+                    }
+                });
+
+                document.getElementById(`out-total-${playerIndex}`).textContent = outTotal;
+                document.getElementById(`in-total-${playerIndex}`).textContent = inTotal;
+                document.getElementById(`grand-total-${playerIndex}`).textContent = outTotal + inTotal;
+            }
+
+            function showWinner() {
+                const playerScores = [];
+                const rows = scorecardBody.querySelectorAll('tr');
+
+                rows.forEach(row => {
+                    const nameCell = row.querySelector('td.sticky-col');
+                    const name = nameCell.dataset.name;
+                    const score = parseInt(row.querySelector('[id^="grand-total-"]').textContent);
+                    playerScores.push({ name: name, score: score });
+                });
+
+                playerScores.sort((a, b) => a.score - b.score);
+
+                document.querySelectorAll('.score-input').forEach(input => input.disabled = true);
+                endGameBtn.disabled = true;
+
+                resultsSection.classList.remove('hidden');
+                
+                resultsBody.innerHTML = '';
+                const lowestScore = playerScores.length > 0 ? playerScores[0].score : 0;
+
+                playerScores.forEach((player, index) => {
+                    const playerRow = document.createElement('tr');
+                    playerRow.className = 'border-b border-gray-200';
+                    const position = index + 1;
+                    
+                    let playerNameHTML = player.name;
+                    if (player.score === lowestScore) {
+                        playerNameHTML += ` <span class="trophy" title="Ganador">&#127942;</span>`;
+                    }
+                    
+                    playerRow.innerHTML = `
+                        <td class="sticky-col font-bold text-left text-gray-900 bg-white">${position}</td>
+                        <td class="font-bold text-left text-gray-900 bg-white">${playerNameHTML}</td>
+                        <td class="font-bold">${player.score}</td>
+                    `;
+                    resultsBody.appendChild(playerRow);
+                });
+            }
+
+            sendWhatsappBtn.addEventListener('click', sendToWhatsApp);
+
+            function sendToWhatsApp() {
+                const resultsTable = document.getElementById('results-body');
+                let message = "¡Resultados de Villagolf Golfito!\n\n";
+                
+                const rows = resultsTable.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const position = row.children[0].textContent;
+                    const playerName = row.children[1].textContent.replace(' 🏆', '').trim();
+                    const score = row.children[2].textContent;
+                    message += `${position}. ${playerName}: ${score} puntos\n`;
+                });
+
+                message += `\n¡Gracias por elegirnos! Comparte tu opinión de tu visita a villagolf, en https://g.page/r/CdgoCw4lsr0rEAE/review\nComo muestra de nuestro aprecio, disfruta de un bono de cortesía.\n¡Esperamos verte pronto!`;
+                
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+            }
+
+            function showModal(content) {
+                const modal = document.createElement('div');
+                modal.style.position = 'fixed';
+                modal.style.left = '0';
+                modal.style.top = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                modal.style.display = 'flex';
+                modal.style.justifyContent = 'center';
+                modal.style.alignItems = 'center';
+                modal.style.zIndex = '1000';
+                modal.style.padding = '1rem';
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.backgroundColor = 'white';
+                modalContent.style.padding = '20px 40px';
+                modalContent.style.borderRadius = '8px';
+                modalContent.style.textAlign = 'center';
+                modalContent.style.maxHeight = '90vh';
+                modalContent.style.overflowY = 'auto';
+
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Cerrar';
+                closeButton.style.marginTop = '20px';
+                closeButton.style.padding = '10px 20px';
+                closeButton.style.border = 'none';
+                closeButton.style.borderRadius = '5px';
+                closeButton.style.backgroundColor = '#10B981'; // Teal-500
+                closeButton.style.color = 'white';
+                closeButton.style.cursor = 'pointer';
+
+                modalContent.innerHTML = content;
+                modalContent.appendChild(closeButton);
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+                
+                closeButton.onclick = () => {
+                    document.body.removeChild(modal);
+                };
+                 modal.onclick = (event) => {
+                    if (event.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                };
+            }
+        });
+    </script>
+</body>
+</html>
