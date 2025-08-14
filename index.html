@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tarjeta de Puntuación - Villagolf</title>
+    <title>Tarjeta de Juego - Villagolf</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -19,6 +20,9 @@
             border-radius: 0.5rem;
             border: 1px solid #D1D5DB;
             -moz-appearance: textfield;
+            background-color: #F2F2F2;
+            color: black;
+            font-weight: bold;
         }
         .score-input::-webkit-outer-spin-button,
         .score-input::-webkit-inner-spin-button {
@@ -27,7 +31,7 @@
         }
         .table-container {
             width: 100%;
-            overflow-x: auto; /* Esta es la propiedad clave para el desplazamiento horizontal */
+            overflow-x: auto;
             -webkit-overflow-scrolling: touch;
         }
         .table-container::-webkit-scrollbar {
@@ -79,8 +83,8 @@
 
     <div class="container mx-auto p-4 max-w-7xl">
         <header class="text-center mb-6">
-            <h1 class="text-3xl md:text-4xl font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider">Tarjeta de Puntuación</h1>
-            <p class="text-red-600 dark:text-red-500 mt-2 text-lg font-bold">VILLAGOLF GOLFITO</p>
+            <h1 class="text-3xl md:text-4xl font-bold uppercase tracking-wider" style="font-family: Arial, sans-serif; color: #e60a0a;">Tarjeta de Juego</h1>
+            <p class="mt-2 text-lg font-bold italic" style="font-family: 'Anton', sans-serif; color: #12bf33;">Villagolf Minigolf</p>
         </header>
 
         <div id="setup-section" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
@@ -175,7 +179,7 @@
                 const inputDiv = document.createElement('div');
                 inputDiv.innerHTML = `
                     <label for="player${i}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Jugador ${i}</label>
-                    <input type="text" id="player${i}" name="player${i}" placeholder="Nombre del Jugador ${i}" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                    <input type="text" id="player${i}" name="player${i}" placeholder="Nombre del Jugador ${i}" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 focus:bg-[#12bf33] focus:text-white sm:text-sm">
                 `;
                 playerInputsContainer.appendChild(inputDiv);
             }
@@ -221,28 +225,36 @@
                 scorecardHead.innerHTML = '';
                 scorecardBody.innerHTML = '';
 
-                const headerRow = document.createElement('tr');
-                let headerHTML = '<th class="sticky-col font-semibold">Jugador</th>';
+                const headerRow1 = document.createElement('tr');
+                headerRow1.innerHTML = `
+                    <th rowspan="2" class="sticky-col font-semibold">Jugador</th>
+                    <th colspan="18" class="font-semibold" style="background-color: #385723; color: #ffffff;">18 Hoyos</th>
+                    <th colspan="3" class="font-semibold"></th>
+                `;
+                scorecardHead.appendChild(headerRow1);
+
+                const headerRow2 = document.createElement('tr');
+                let headerHTML = '';
                 for (let i = 1; i <= 9; i++) headerHTML += `<th>${i}</th>`;
-                headerHTML += '<th class="font-semibold bg-teal-100 dark:bg-teal-800">OUT</th>';
+                headerHTML += '<th class="font-semibold bg-teal-100 dark:bg-teal-800">SUMA</th>';
                 for (let i = 10; i <= 18; i++) headerHTML += `<th>${i}</th>`;
-                headerHTML += '<th class="font-semibold bg-teal-100 dark:bg-teal-800">IN</th>';
+                headerHTML += '<th class="font-semibold bg-teal-100 dark:bg-teal-800">SUMA</th>';
                 headerHTML += '<th class="font-semibold bg-green-100 dark:bg-green-800">TOTAL</th>';
-                headerRow.innerHTML = headerHTML;
-                scorecardHead.appendChild(headerRow);
+                headerRow2.innerHTML = headerHTML;
+                scorecardHead.appendChild(headerRow2);
                 
                 players.forEach((name, index) => {
                     const playerRow = document.createElement('tr');
                     playerRow.id = `player-row-${index}`;
                     playerRow.className = 'border-b border-gray-200 dark:border-gray-700';
 
-                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-amber-500 dark:bg-amber-600" data-name="${name}">${name}</td>`;
+                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-[#12bf33] dark:bg-[#12bf33]">${name}</td>`;
                     
                     for (let i = 1; i <= 18; i++) {
                         if (i === 10) {
                             rowHTML += `<td id="out-total-${index}" class="font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900">0</td>`;
                         }
-                        rowHTML += `<td><input type="number" min="1" max="8" class="score-input bg-gray-50 dark:bg-gray-700" data-player="${index}" data-hole="${i}"></td>`;
+                        rowHTML += `<td><input type="number" min="1" max="8" class="score-input" data-player="${index}" data-hole="${i}"></td>`;
                     }
                     
                     rowHTML += `<td id="in-total-${index}" class="font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900">0</td>`;
@@ -317,7 +329,7 @@
                     
                     playerRow.innerHTML = `
                         <td class="sticky-col font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white">${position}</td>
-                        <td class="font-bold text-left text-gray-900 bg-amber-500 dark:bg-amber-600">${playerNameHTML}</td>
+                        <td class="font-bold text-left text-gray-900 bg-[#12bf33] dark:bg-[#12bf33]">${playerNameHTML}</td>
                         <td class="font-bold">${player.score}</td>
                     `;
                     resultsBody.appendChild(playerRow);
@@ -338,7 +350,7 @@
                     message += `${position}. ${playerName}: ${score} puntos\n`;
                 });
 
-                message += `\nConsulta la tabla completa aquí:\nhttps://villagolfmini.github.io/TARJETA-DE-PUNTOS/`;
+                message += `\n¡Gracias por elegirnos! Comparte tu opinión de tu visita a villagolf, en https://g.page/r/CdgoCw4lsr0rEAE/review   Como muestra de nuestro aprecio, disfruta de un bono de cortesía. ¡Esperamos verte pronto!`;
                 
                 const encodedMessage = encodeURIComponent(message);
                 const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
