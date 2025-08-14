@@ -160,10 +160,8 @@
         <p class="font-bold mb-2 footer-text-color">@villagolfmini</p>
         <div class="flex justify-center space-x-4">
             <a href="https://www.instagram.com/villagolfmini" target="_blank" rel="noopener noreferrer" class="instagram-color hover:text-pink-600 transition-colors duration-200">
-                <svg class="social-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2.163c3.204 0 3.584.012 4.85.06 3.252.148 5.868 2.866 6.016 6.118.048 1.266.06 1.646.06 4.85s-.012 3.584-.06 4.85c-.148 3.252-2.866 5.868-6.118 6.016-1.266.048-1.646.06-4.85.06s-3.584-.012-4.85-.06c-3.252-.148-5.868-2.866-6.016-6.118-.048-1.266-.06-1.646-.06-4.85s.012-3.584.06-4.85c.148-3.252 2.866-5.868 6.118-6.016 1.266-.048 1.646-.06 4.85-.06z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M12 16c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M16.5 7.5v.008" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <svg class="social-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2.163c3.204 0 3.584.012 4.85.06 3.252.148 5.868 2.866 6.016 6.118.048 1.266.06 1.646.06 4.85s-.012 3.584-.06 4.85c-.148 3.252-2.866 5.868-6.016 6.118-1.266.048-1.646.06-4.85.06s-3.584-.012-4.85-.06c-3.252-.148-5.868-2.866-6.016-6.118-.048-1.266-.06-1.646-.06-4.85s.012-3.584.06-4.85c.148-3.252 2.866-5.868 6.016-6.118 1.266-.048 1.646-.06 4.85-.06zm0 2.163c-3.14 0-3.52.012-4.755.056-2.525.116-3.834 1.425-3.95 3.95-.044 1.235-.056 1.615-.056 4.755s.012 3.52.056 4.755c.116 2.525 1.425 3.834 3.95 3.95 1.235.044 1.615.056 4.755.056s3.52-.012 4.755-.056c2.525-.116 3.834-1.425 3.95-3.95.044-1.235.056-1.615.056-4.755s-.012-3.52-.056-4.755c-.116-2.525-1.425-3.834-3.95-3.95-1.235-.044-1.615-.056-4.755-.056zM12 9.176c-1.554 0-2.824 1.27-2.824 2.824s1.27 2.824 2.824 2.824 2.824-1.27 2.824-2.824c0-1.554-1.27-2.824-2.824-2.824zm0 2.163c-.886 0-1.602.716-1.602 1.602s.716 1.602 1.602 1.602 1.602-.716 1.602-1.602c0-.886-.716-1.602-1.602-1.602zm3.25-3.693c-.45 0-.816.365-.816.816s.365.816.816.816.816-.365.816-.816-.365-.816-.816-.816z"/>
                 </svg>
             </a>
             <a href="https://www.facebook.com/villagolfmini" target="_blank" rel="noopener noreferrer" class="facebook-color hover:text-blue-700 transition-colors duration-200">
@@ -342,7 +340,7 @@
                 let outTotal = 0;
                 let inTotal = 0;
 
-                const allInputs = playerRow.querySelectorAll('inputdata-hole');
+                const allInputs = playerRow.querySelectorAll('input[data-hole]');
                 allInputs.forEach(input => {
                     const hole = parseInt(input.dataset.hole);
                     const value = parseInt(input.value) || 0;
@@ -377,7 +375,7 @@
                 resultsSection.classList.remove('hidden');
 
                 resultsBody.innerHTML = '';
-                const lowestScore = playerScores.length > 0 ? playerScores\[0].score : 0;
+                const lowestScore = playerScores.length > 0 ? playerScores[0].score : 0;
 
                 playerScores.forEach((player, index) => {
                     const playerRow = document.createElement('tr');
@@ -409,9 +407,9 @@
 
                 const rows = resultsTable.querySelectorAll('tr');
                 rows.forEach(row => {
-                    const position = row.children\[0].textContent;
-                    const playerName = row.children\[1].textContent.replace(' 🏆', '').trim();
-                    const score = row.children\[2].textContent;
+                    const position = row.children[0].textContent;
+                    const playerName = row.children[1].textContent.replace(' 🏆', '').trim();
+                    const score = row.children[2].textContent;
                     message += `${position}. ${playerName}: ${score} puntos\n`;
                 });
 
