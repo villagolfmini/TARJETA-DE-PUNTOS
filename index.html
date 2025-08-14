@@ -135,7 +135,10 @@
                     </button>
                 </div>
             </div>
-            <div class="mt-6 text-center">
+            <div class="mt-6 flex flex-col md:flex-row gap-4 justify-center">
+                 <button id="rules-btn" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    REGLAS DE JUEGO Y REGLAMENTO
+                </button>
                  <button id="reset-game-btn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">
                     Nuevo Juego
                 </button>
@@ -173,6 +176,7 @@
             const resultsSection = document.getElementById('results-section');
             const resultsBody = document.getElementById('results-body');
             const sendWhatsappBtn = document.getElementById('send-whatsapp-btn');
+            const rulesBtn = document.getElementById('rules-btn');
 
             // Generate player input fields
             for (let i = 1; i <= 8; i++) {
@@ -219,6 +223,10 @@
                 }
             });
             
+            rulesBtn.addEventListener('click', function() {
+                showModal('REGLAS DE JUEGO . Y REGLAMENTO');
+            });
+            
             endGameBtn.addEventListener('click', showWinner);
 
             function setupScorecard(players) {
@@ -227,8 +235,8 @@
 
                 const headerRow1 = document.createElement('tr');
                 headerRow1.innerHTML = `
-                    <th rowspan="2" class="sticky-col font-semibold">Jugador</th>
-                    <th colspan="18" class="font-semibold" style="background-color: #385723; color: #ffffff;">18 Hoyos</th>
+                    <th rowspan="2" class="sticky-col font-semibold text-gray-900 bg-gray-200 dark:bg-gray-700">Jugador</th>
+                    <th colspan="18" class="font-semibold text-gray-900 bg-amber-500 dark:bg-amber-600">18 Hoyos</th>
                     <th colspan="3" class="font-semibold"></th>
                 `;
                 scorecardHead.appendChild(headerRow1);
@@ -236,9 +244,9 @@
                 const headerRow2 = document.createElement('tr');
                 let headerHTML = '';
                 for (let i = 1; i <= 9; i++) headerHTML += `<th>${i}</th>`;
-                headerHTML += '<th class="font-semibold bg-teal-100 dark:bg-teal-800">SUMA</th>';
+                headerHTML += '<th class="font-semibold bg-orange-400 dark:bg-orange-500">SUMA</th>';
                 for (let i = 10; i <= 18; i++) headerHTML += `<th>${i}</th>`;
-                headerHTML += '<th class="font-semibold bg-teal-100 dark:bg-teal-800">SUMA</th>';
+                headerHTML += '<th class="font-semibold bg-orange-400 dark:bg-orange-500">SUMA</th>';
                 headerHTML += '<th class="font-semibold bg-green-100 dark:bg-green-800">TOTAL</th>';
                 headerRow2.innerHTML = headerHTML;
                 scorecardHead.appendChild(headerRow2);
@@ -248,16 +256,16 @@
                     playerRow.id = `player-row-${index}`;
                     playerRow.className = 'border-b border-gray-200 dark:border-gray-700';
 
-                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-[#12bf33] dark:bg-[#12bf33]">${name}</td>`;
+                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-[#12bf33] dark:bg-[#12bf33]" data-name="${name}">${name}</td>`;
                     
                     for (let i = 1; i <= 18; i++) {
                         if (i === 10) {
-                            rowHTML += `<td id="out-total-${index}" class="font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900">0</td>`;
+                            rowHTML += `<td id="out-total-${index}" class="font-bold text-teal-600 dark:text-teal-400 bg-orange-400 dark:bg-orange-500">0</td>`;
                         }
                         rowHTML += `<td><input type="number" min="1" max="8" class="score-input" data-player="${index}" data-hole="${i}"></td>`;
                     }
                     
-                    rowHTML += `<td id="in-total-${index}" class="font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900">0</td>`;
+                    rowHTML += `<td id="in-total-${index}" class="font-bold text-teal-600 dark:text-teal-400 bg-orange-400 dark:bg-orange-500">0</td>`;
                     rowHTML += `<td id="grand-total-${index}" class="font-bold text-xl text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900">0</td>`;
 
                     playerRow.innerHTML = rowHTML;
