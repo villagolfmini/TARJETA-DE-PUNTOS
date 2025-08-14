@@ -87,8 +87,8 @@
             <p class="mt-2 text-2xl font-bold" style="font-family: 'Anton', sans-serif; color: #12bf33;">Villagolf Minigolf</p>
         </header>
 
-        <div id="setup-section" class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg mb-8">
-            <h2 class="text-2xl font-semibold mb-4 text-gray-700 dark:text-gray-300">Configuración del Juego</h2>
+        <div id="setup-section" class="bg-white dark:bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700 dark:text-gray-700">Registro de Jugadores</h2>
             <div id="player-inputs" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
             </div>
             <button id="start-game-btn" class="mt-6 w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
@@ -225,45 +225,47 @@
             
             rulesBtn.addEventListener('click', function() {
                 showModal(`
-                    <h3 style="font-weight: bold; font-size: 1.25rem; margin-bottom: 1rem;">REGLAS DE JUEGO Y REGLAMENTO</h3>
-                    <p style="text-align: left; margin-bottom: 1rem;">
-                        <strong>Turnos de salida:</strong> El primer golpe en cada hoyo debe jugarse desde el área de salida. El orden de salida para el primer golpe del juego lo eligen los jugadores.<br>
-                        <strong>Turnos posteriores:</strong> En cada hoyo, el jugador cuya bola esté más cerca del hoyo es quien golpea primero.<br>
-                        <strong>Número de Jugadores:</strong> El número máximo de participantes por grupo es de 8 personas.<br>
-                        <strong>Recorrido:</strong> Deben jugar los 18 hoyos en orden consecutivo, sin saltarse ninguno.<br>
-                    </p>
-                    <h4 style="font-weight: bold; font-size: 1rem; margin-bottom: 0.5rem;">Penalizaciones:</h4>
-                    <p style="text-align: left; margin-bottom: 1rem;">
-                        Si la bola sale de los límites de la pista, del área de juego o cae en una trampa de arena o agua, debes colocarla en el césped por donde salió y sumar un punto de penalización.<br>
-                        Si la bola golpea un borde, puedes moverla 10 cm con el palo, sin penalización.<br>
-                    </p>
-                    <h4 style="font-weight: bold; font-size: 1rem; margin-bottom: 0.5rem;">Puntuación:</h4>
-                    <p style="text-align: left; margin-bottom: 1rem;">
-                        El puntaje máximo por cada hoyo es de 8 golpes. Si después de 8 golpes no has logrado meter la bola, anota 8 puntos y pasa al siguiente hoyo.<br>
-                        Gana quien complete los 18 hoyos con el menor puntaje total.<br>
-                    </p>
-                    <h4 style="font-weight: bold; font-size: 1rem; margin-bottom: 0.5rem;">Regla de juego con otras bolas:</h4>
-                    <p style="text-align: left; margin-bottom: 1rem;">
-                        No se permite meter la bola de otro jugador. Si tu bola golpea la de otro jugador y esta entra en el hoyo, la bola golpeada debe ser devuelta a su posición original. Tu golpe sí cuenta para ti y continuas tu juego desde la posición donde se detuvo tu bola.<br>
-                        Si dos bolas quedan pegadas, la que debe jugarse (la más cercana al hoyo) se puede levantar para que la otra no la estorbe. Luego, la bola se coloca de nuevo en su lugar y se juega el golpe.<br>
-                    </p>
-                    <h4 style="font-weight: bold; font-size: 1rem; margin-bottom: 0.5rem;">Restricciones:</h4>
-                    <p style="text-align: left; margin-bottom: 1rem;">
-                        Está prohibido repetir un hoyo o jugar un hoyo adicional. Si lo haces, se considera una ronda de juego adicional.<br>
-                        Prestar un palo a otro visitante genera el cobro de un juego adicional.<br>
-                    </p>
-                    <h4 style="font-weight: bold; font-size: 1rem; margin-bottom: 0.5rem;">Seguridad:</h4>
-                    <p style="text-align: left; margin-bottom: 1rem;">
-                        Está prohibido hacer swing o levantar el palo a más de la altura de la rodilla.<br>
-                        No arrastres los palos, ni los golpees contra rocas, ladrillos o cualquier otra superficie dura que no sea la bola.<br>
-                        Los usuarios se hacen responsables de los implementos en caso de perdida o daño, y cancelarán el valor de la reposición establecido por la caja.<br>
-                        El usuario es responsable de accidentes o daños causados a instalaciones o terceros.<br>
-                        Los menores de 7 años deben jugar acompañados por un adulto responsable.<br>
-                    </p>
-                    <h4 style="font-weight: bold; font-size: 1rem; margin-bottom: 0.5rem;">Lluvia:</h4>
-                    <p style="text-align: left; margin-bottom: 1rem;">
-                        En caso de lluvia, el juego debe suspenderse. Si no has completado 9 hoyos, se te entregará un bono para otro día.<br>
-                    </p>
+                    <div class="dark:bg-gray-800 dark:text-gray-300 p-6 rounded-md">
+                        <h3 class="font-bold text-xl mb-4 text-gray-700 dark:text-gray-300">REGLAS DE JUEGO Y REGLAMENTO</h3>
+                        <p class="text-left mb-2 text-gray-700 dark:text-gray-300">
+                            <strong>Turnos de salida:</strong> El primer golpe en cada hoyo debe jugarse desde el área de salida. El orden de salida para el primer golpe del juego lo eligen los jugadores.<br>
+                            <strong>Turnos posteriores:</strong> En cada hoyo, el jugador cuya bola esté más cerca del hoyo es quien golpea primero.<br>
+                            <strong>Número de Jugadores:</strong> El número máximo de participantes por grupo es de 8 personas.<br>
+                            <strong>Recorrido:</strong> Deben jugar los 18 hoyos en orden consecutivo, sin saltarse ninguno.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700 dark:text-gray-300">Penalizaciones:</h4>
+                        <p class="text-left mb-2 text-gray-700 dark:text-gray-300">
+                            Si la bola sale de los límites de la pista, del área de juego o cae en una trampa de arena o agua, debes colocarla en el césped por donde salió y sumar un punto de penalización.<br>
+                            Si la bola golpea un borde, puedes moverla 10 cm con el palo, sin penalización.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700 dark:text-gray-300">Puntuación:</h4>
+                        <p class="text-left mb-2 text-gray-700 dark:text-gray-300">
+                            El puntaje máximo por cada hoyo es de 8 golpes. Si después de 8 golpes no has logrado meter la bola, anota 8 puntos y pasa al siguiente hoyo.<br>
+                            Gana quien complete los 18 hoyos con el menor puntaje total.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700 dark:text-gray-300">Regla de juego con otras bolas:</h4>
+                        <p class="text-left mb-2 text-gray-700 dark:text-gray-300">
+                            No se permite meter la bola de otro jugador. Si tu bola golpea la de otro jugador y esta entra en el hoyo, la bola golpeada debe ser devuelta a su posición original. Tu golpe sí cuenta para ti y continuas tu juego desde la posición donde se detuvo tu bola.<br>
+                            Si dos bolas quedan pegadas, la que debe jugarse (la más cercana al hoyo) se puede levantar para que la otra no la estorbe. Luego, la bola se coloca de nuevo en su lugar y se juega el golpe.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700 dark:text-gray-300">Restricciones:</h4>
+                        <p class="text-left mb-2 text-gray-700 dark:text-gray-300">
+                            Está prohibido repetir un hoyo o jugar un hoyo adicional. Si lo haces, se considera una ronda de juego adicional.<br>
+                            Prestar un palo a otro visitante genera el cobro de un juego adicional.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700 dark:text-gray-300">Seguridad:</h4>
+                        <p class="text-left mb-2 text-gray-700 dark:text-gray-300">
+                            Está prohibido hacer swing o levantar el palo a más de la altura de la rodilla.<br>
+                            No arrastres los palos, ni los golpees contra rocas, ladrillos o cualquier otra superficie dura que no sea la bola.<br>
+                            Los usuarios se hacen responsables de los implementos en caso de perdida o daño, y cancelarán el valor de la reposición establecido por la caja.<br>
+                            El usuario es responsable de accidentes o daños causados a instalaciones o terceros.<br>
+                            Los menores de 7 años deben jugar acompañados por un adulto responsable.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700 dark:text-gray-300">Lluvia:</h4>
+                        <p class="text-left mb-2 text-gray-700 dark:text-gray-300">
+                            En caso de lluvia, el juego debe suspenderse. Si no has completado 9 hoyos, se te entregará un bono para otro día.<br>
+                        </p>
+                    </div>
                 `);
             });
             
@@ -275,7 +277,7 @@
 
                 const headerRow1 = document.createElement('tr');
                 headerRow1.innerHTML = `
-                    <th rowspan="2" class="sticky-col font-semibold text-gray-900 bg-gray-200 dark:bg-white">Jugador</th>
+                    <th rowspan="2" class="sticky-col font-semibold text-gray-900 bg-gray-200 dark:bg-gray-700">Jugador</th>
                     <th colspan="18" class="font-semibold text-white bg-amber-500 dark:bg-amber-600">18 Hoyos</th>
                     <th colspan="3" class="font-semibold"></th>
                 `;
@@ -284,10 +286,10 @@
                 const headerRow2 = document.createElement('tr');
                 let headerHTML = '';
                 for (let i = 1; i <= 9; i++) headerHTML += `<th class="bg-gray-200 dark:bg-gray-700 text-black dark:text-white">${i}</th>`;
-                headerHTML += '<th class="font-semibold bg-orange-100 dark:bg-gray-700 text-orange-900 dark:text-orange-900">SUMA</th>';
+                headerHTML += '<th class="font-semibold bg-orange-100 dark:bg-orange-900 text-orange-900 dark:text-orange-300">SUMA</th>';
                 for (let i = 10; i <= 18; i++) headerHTML += `<th class="bg-gray-200 dark:bg-gray-700 text-black dark:text-white">${i}</th>`;
-                headerHTML += '<th class="font-semibold bg-orange-100 dark:bg-gray-700 text-orange-900 dark:text-orange-900">SUMA</th>';
-                headerHTML += '<th class="font-semibold bg-green-100 dark:bg-green-800">TOTAL</th>';
+                headerHTML += '<th class="font-semibold bg-orange-100 dark:bg-orange-900 text-orange-900 dark:text-orange-300">SUMA</th>';
+                headerHTML += '<th class="font-semibold bg-green-100 dark:bg-green-900 text-green-900 dark:text-green-300">TOTAL</th>';
                 headerRow2.innerHTML = headerHTML;
                 scorecardHead.appendChild(headerRow2);
                 
@@ -296,16 +298,16 @@
                     playerRow.id = `player-row-${index}`;
                     playerRow.className = 'border-b border-gray-200 dark:border-gray-700';
 
-                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-[#12bf33] dark:bg-[#12bf33] text-black" data-name="${name}">${name}</td>`;
+                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 dark:bg-gray-800 dark:text-white" data-name="${name}">${name}</td>`;
                     
                     for (let i = 1; i <= 18; i++) {
                         if (i === 10) {
-                            rowHTML += `<td id="out-total-${index}" class="font-bold bg-orange-100 dark:bg-gray-700 text-orange-900 dark:text-orange-900">0</td>`;
+                            rowHTML += `<td id="out-total-${index}" class="font-bold bg-orange-100 dark:bg-orange-900 text-orange-900 dark:text-orange-300">0</td>`;
                         }
-                        rowHTML += `<td class="bg-white dark:bg-gray-800"><input type="number" min="1" max="8" class="score-input" data-player="${index}" data-hole="${i}"></td>`;
+                        rowHTML += `<td class="bg-white dark:bg-gray-800"><input type="number" min="1" max="8" class="score-input bg-white dark:bg-gray-700 text-black dark:text-white" data-player="${index}" data-hole="${i}"></td>`;
                     }
                     
-                    rowHTML += `<td id="in-total-${index}" class="font-bold bg-orange-100 dark:bg-gray-700 text-orange-900 dark:text-orange-900">0</td>`;
+                    rowHTML += `<td id="in-total-${index}" class="font-bold bg-orange-100 dark:bg-orange-900 text-orange-900 dark:text-orange-300">0</td>`;
                     rowHTML += `<td id="grand-total-${index}" class="font-bold text-xl text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900">0</td>`;
 
                     playerRow.innerHTML = rowHTML;
@@ -376,8 +378,8 @@
                     }
                     
                     playerRow.innerHTML = `
-                        <td class="sticky-col font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white">${position}</td>
-                        <td class="font-bold text-left text-gray-900 bg-[#12bf33] text-black">${playerNameHTML}</td>
+                        <td class="sticky-col font-bold text-left text-gray-900 dark:bg-gray-800 dark:text-white">${position}</td>
+                        <td class="font-bold text-left text-gray-900 bg-white dark:bg-gray-800 dark:text-white">${playerNameHTML}</td>
                         <td class="font-bold">${player.score}</td>
                     `;
                     resultsBody.appendChild(playerRow);
