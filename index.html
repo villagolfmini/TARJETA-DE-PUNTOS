@@ -162,4 +162,213 @@
         container.appendChild(newPlayerInput);
     }
 
-    function remove
+    function removePlayer(button) {
+        button.parentElement.remove();
+    }
+
+    function startGame() {
+        const playerInputs = document.querySelectorAll('.player-name-input');
+        players = Array.from(playerInputs)
+                       .map(input => input.value.trim())
+                       .filter(name => name !== '');
+
+        if (players.length === 0) {
+            alert('Por favor, ingresa al menos un jugador.');
+            return;
+        }
+
+        document.getElementById('setup-section').style.display = 'none';
+        document.getElementById('game-section').style.display = 'block';
+        gameId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        startTime = new Date();
+        renderScoreTable();
+    }
+
+    function renderScoreTable() {
+        const table = document.getElementById('score-table');
+        const headerRow = table.querySelector('thead tr');
+        const body = table.querySelector('tbody');
+        
+        // Clear previous rows and headers
+        body.innerHTML = '';
+        headerRow.innerHTML = '<th>Jugador</th>';
+        for (let i = 1; i <= currentHole; i++) {
+            headerRow.innerHTML += `<th>Hoyo ${i}</th>`;
+        }
+        
+        players.forEach(player => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${player}</td>`;
+            for (let i = 1; i <= currentHole; i++) {
+                row.innerHTML += `<td><input type="number" class="score-input" min="1" data-player="${player}" data-hole="${i}" onchange="updateScore()"></td>`;
+            }
+            body.appendChild(row);
+        });
+
+        document.getElementById('current-hole-display').textContent = `Hoyo ${currentHole}`;
+        if (currentHole === HOLES_COUNT) {
+            document.getElementById('end-game-btn').style.display = 'inline-block';
+        } else {
+            document.getElementById('end-game-btn').style.display = 'none';
+        }
+        
+        // Restore scores if available
+        restoreScores();
+    }
+
+    function updateScore() {
+        players.forEach(player => {
+            const rowInputs = document.querySelectorAll(`[data-player="${player}"]`);
+            player.scores = Array.from(rowInputs).map(input => parseInt(input.value) || 0);
+        });
+    }
+
+    function restoreScores() {
+        const allScores = {};
+        players.forEach(player => {
+            allScores[player] = JSON.parse(localStorage.getItem(`scores_${player}`)) || {};
+        });
+
+        document.querySelectorAll('.score-input').forEach(input => {
+            const player = input.dataset.player;
+            const hole = parseInt(input.dataset.hole);
+            if (allScores[player] && allScores[player][hole]) {
+                input.value = allScores[player][hole];
+            }
+        });
+    }
+
+    function nextHole() {
+        if (currentHole < HOLES_COUNT) {
+            saveScores();
+            currentHole++;
+            renderScoreTable();
+        }
+    }
+
+    function previousHole() {
+        if (currentHole > 1) {
+            saveScores();
+            currentHole--;
+            renderScoreTable();
+        }
+    }
+
+    function saveScores() {
+        const scores = {};
+        document.querySelectorAll('.score-input').forEach(input => {
+            const player = input.dataset.player;
+            const hole = parseInt(input.dataset.hole);
+            const score = parseInt(input.value) || 0;
+            if (!scores[player]) {
+                scores[player] = {};
+            }
+            scores[player][hole] = score;
+        });
+
+        for (const player in scores) {
+            localStorage.setItem(`scores_${player}`, JSON.stringify(scores[player]));
+        }
+    }
+    
+    // Obtiene los datos finales de la partida
+    function getFinalData() {
+        const finalScores = {};
+        const playerScores = {};
+        document.querySelectorAll('.score-input').forEach(input => {
+            const player = input.dataset.player;
+            const score = parseInt(input.value) || 0;
+            if (!playerScores[player]) {
+                playerScores[player] = [];
+            }
+            playerScores[player].push(score);
+        });
+        
+        for (const player in playerScores) {
+            const total = playerScores[player].reduce((sum, score) => sum + score, 0);
+            finalScores[player] = total;
+        }
+        return { finalScores, playerScores };
+    }
+
+    // Encuentra al ganador
+    function findWinner(finalScores) {
+        const sortedPlayers = Object.keys(finalScores).sort((a, b) => finalScores[a] - finalScores[b]);
+        return sortedPlayers[0];
+    }
+    
+    // Función para finalizar la partida
+    function endGame() {
+        if (currentHole !== HOLES_COUNT) {
+            alert('Debes completar los 18 hoyos para finalizar la partida.');
+            return;
+        }
+
+        const { finalScores, playerScores } = getFinalData();
+        const winner = findWinner(finalScores);
+        
+        const nombresJugadores = Object.keys(finalScores);
+        const puntajesFinales = Object.values(finalScores);
+        const horaFin = new Date();
+        const duracionMinutos = ((horaFin - startTime) / 1000 / 60).toFixed(2);
+        
+        const datosPartida = {
+            game_id: gameId,
+            fecha: new Date().toLocaleDateString('es-ES'),
+            hora_inicio: startTime.toLocaleTimeString('es-ES'),
+            hora_fin: horaFin.toLocaleTimeString('es-ES'),
+            duracion_minutos: duracionMinutos,
+            nombres_jugadores: nombresJugadores.join(', '),
+            puntajes_finales: puntajesFinales.join(', '),
+            ganador: winner
+        };
+
+        // Llama a la función para guardar la partida
+        guardarPartida(datosPartida);
+
+        // Muestra los resultados
+        document.getElementById('game-section').style.display = 'none';
+        document.getElementById('results-section').style.display = 'block';
+        document.getElementById('winner-display').textContent = `El ganador es: ${winner}`;
+
+        const tableBody = document.getElementById('final-score-table').querySelector('tbody');
+        tableBody.innerHTML = '';
+        Object.keys(finalScores).forEach(player => {
+            const row = document.createElement('tr');
+            row.innerHTML = `<td>${player}</td><td>${finalScores[player]}</td>`;
+            tableBody.appendChild(row);
+        });
+
+        localStorage.clear();
+    }
+    
+    // Función para guardar los datos en Google Apps Script
+    async function guardarPartida(datosPartida) {
+      try {
+        const options = {
+          method: 'POST',
+          body: JSON.stringify(datosPartida),
+          mode: 'no-cors', // <--- SOLUCIÓN AL ERROR DE CORS
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+
+        const response = await fetch(webAppUrl, options);
+
+        if (response) {
+            console.log('Solicitud enviada. La respuesta es opaca debido a la configuración CORS.');
+            // No podemos leer la respuesta con 'no-cors', así que asumimos éxito.
+        } else {
+            console.error('La solicitud no pudo ser enviada.');
+        }
+
+      } catch (error) {
+        console.error('Error de red:', error);
+        alert('Error de conexión. No se pudo guardar la partida');
+      }
+    }
+</script>
+
+</body>
+</html>
