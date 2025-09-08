@@ -53,7 +53,11 @@
         <div id="scorecard-section" class="hidden">
             <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Tarjeta de Puntuación</h2>
-                <span id="game-id-display" class="font-bold text-gray-600">ID:</span>
+               <p class="font-bold text-gray-600">
+    ID de Partida: 
+    <span id="gameIdDisplay" class="font-normal text-blue-500"></span> 
+    <span id="copyButton" class="ml-2 text-sm text-gray-500 hover:text-blue-500 cursor-pointer" onclick="copyGameId()">[Copiar]</span>
+</p>
             </div>
             <div class="table-container bg-white rounded-xl shadow-lg">
                 <table class="w-full text-center">
