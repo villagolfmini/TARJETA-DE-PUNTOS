@@ -293,4 +293,229 @@
                 });
 
                 document.getElementById(`out-total-${playerIndex}`).textContent = outTotal;
-                document.getElementById(
+                document.getElementById(`in-total-${playerIndex}`).textContent = inTotal;
+                document.getElementById(`grand-total-${playerIndex}`).textContent = outTotal + inTotal;
+            }
+
+            function showWinner() {
+                const playerScores = [];
+                const rows = scorecardBody.querySelectorAll('tr');
+
+                rows.forEach(row => {
+                    const nameCell = row.querySelector('td.sticky-col');
+                    const name = nameCell.dataset.name;
+                    const inputs = Array.from(row.querySelectorAll('input[data-hole]'));
+                    const scores = inputs.map(input => parseInt(input.value) || 0);
+                    const totalScore = scores.reduce((sum, score) => sum + score, 0);
+                    
+                    playerScores.push({ name: name, score: totalScore, scores: scores });
+                });
+
+                playerScores.sort((a, b) => a.score - b.score);
+                const lowestFinalScore = playerScores.length > 0 ? playerScores[0].score : 0;
+                
+                document.querySelectorAll('.score-input').forEach(input => input.disabled = true);
+                endGameBtn.disabled = true;
+                
+                // Lógica de guardado al finalizar el juego
+                const endTime = new Date();
+                const durationMinutes = Math.round((endTime - startTime) / 60000);
+                saveGame(durationMinutes, playerScores, lowestFinalScore);
+
+                resultsSection.classList.remove('hidden');
+                resultsBody.innerHTML = '';
+                
+                playerScores.forEach((player, index) => {
+                    const playerRow = document.createElement('tr');
+                    playerRow.className = 'border-b border-gray-200';
+                    const position = index + 1;
+                    
+                    let playerNameHTML = player.name;
+                    let nameCellClass = "font-bold text-left text-gray-900";
+                    
+                    if (player.score === lowestFinalScore) {
+                        playerNameHTML += ` <span class="trophy" title="Ganador">🏆</span>`;
+                        nameCellClass += " winner-name";
+                    }
+                    
+                    playerRow.innerHTML = `
+                        <td class="sticky-col font-bold text-left text-gray-900 bg-white">${position}</td>
+                        <td class="${nameCellClass}">${playerNameHTML}</td>
+                        <td class="font-bold">${player.score}</td>
+                    `;
+                    resultsBody.appendChild(playerRow);
+                });
+            }
+            
+            function loadGame() {
+                const gameId = gameIdInput.value.trim();
+                if (!gameId) {
+                    showModal('Por favor, ingresa un código de partida.');
+                    return;
+                }
+
+                fetch(`${webAppUrl}?game_id=${gameId}`, { method: 'GET', mode: 'cors' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'error') {
+                            showModal(`Error: ${data.message}`);
+                            return;
+                        }
+                        
+                        currentGameId = data.game_id;
+                        startTime = new Date(); // Re-inicia la hora de inicio para el cálculo de duración
+                        
+                        const playerNames = data.nombres_jugadores.split(', ');
+                        const playerScores = data.puntajes_finales.split(', ');
+                        
+                        setupScorecard(playerNames);
+                        
+                        // Los puntajes del Apps Script son un string separado por comas
+                        // Se necesitan los puntajes de cada hoyo para mostrarlos
+                        // Asumiendo que el campo 'puntajes_finales' en tu hoja de cálculo
+                        // tiene todos los puntajes separados por comas.
+                        // EJEMPLO: '1,2,3,4,5,6,7,8,1,2,3,4,5,6,7,8,1,2'
+                        const allScores = data.puntajes_finales.split(',');
+                        let scoreIndex = 0;
+                        
+                        playerNames.forEach((name, playerIndex) => {
+                            const inputs = document.querySelectorAll(`input[data-player="${playerIndex}"]`);
+                            inputs.forEach((input, holeIndex) => {
+                                if(allScores[scoreIndex]) {
+                                     input.value = parseInt(allScores[scoreIndex]);
+                                     scoreIndex++;
+                                }
+                            });
+                        });
+                        
+                        // Si se cargan los puntajes de un juego, los inputs deben actualizarse
+                        // para reflejar el total.
+                        document.querySelectorAll('.score-input').forEach(input => {
+                            updateScores({ target: input });
+                        });
+                        
+                        gameIdDisplay.textContent = `ID de Partida: ${currentGameId}`;
+                        setupSection.classList.add('hidden');
+                        loadSection.classList.add('hidden');
+                        scorecardSection.classList.remove('hidden');
+                        endGameContainer.classList.remove('hidden');
+                        endGameBtn.disabled = false;
+                        
+                        alert('Partida cargada exitosamente. Continúa jugando.');
+
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar la partida:', error);
+                        showModal('No se pudo cargar la partida. Verifica el código o la conexión.');
+                    });
+            }
+
+            function saveGame(durationMinutes, playerScores, lowestFinalScore) {
+                const winnerNames = playerScores
+                    .filter(p => p.score === lowestFinalScore)
+                    .map(p => p.name)
+                    .join(', ');
+
+                const allScores = [];
+                document.querySelectorAll('tbody tr').forEach(row => {
+                    row.querySelectorAll('input[type="number"]').forEach(input => {
+                        allScores.push(parseInt(input.value) || 0);
+                    });
+                });
+                
+                const finalData = {
+                    game_id: currentGameId,
+                    fecha: new Date().toLocaleDateString('es-ES'),
+                    hora_inicio: startTime.toLocaleTimeString('es-ES'),
+                    hora_fin: new Date().toLocaleTimeString('es-ES'),
+                    duracion_minutos: durationMinutes,
+                    nombres_jugadores: playerScores.map(p => p.name).join(', '),
+                    puntajes_finales: allScores.join(','),
+                    ganador: winnerNames
+                };
+
+                fetch(webAppUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(finalData),
+                    headers: { 'Content-Type': 'application/json' }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Respuesta del servidor:', data);
+                    if (data.status === 'success') {
+                         showModal('¡Partida finalizada y guardada exitosamente!');
+                    } else {
+                         showModal('Error al guardar la partida. Por favor, inténtalo de nuevo.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al guardar datos:', error);
+                    showModal('Error de conexión. No se pudo guardar la partida.');
+                });
+            }
+            
+            sendWhatsappBtn.addEventListener('click', sendToWhatsApp);
+
+            function sendToWhatsApp() {
+                const resultsTable = document.getElementById('results-body');
+                let message = "¡Resultados de Villagolf Golfito!\n\n";
+                
+                const rows = resultsTable.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const position = row.children[0].textContent;
+                    const playerName = row.children[1].textContent.replace(' 🏆', '').trim();
+                    const score = row.children[2].textContent;
+                    message += `${position}. ${playerName}: ${score} puntos\n`;
+                });
+
+                message += `\n¡Gracias por elegirnos! Comparte tu opinión de tu visita a villagolf, en https://g.page/r/CdgoCw4lsr0rEAE/review\nComo muestra de nuestro aprecio, disfruta de un bono de cortesía.\n¡Esperamos verte pronto!`;
+                
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+            }
+            
+            function showModal(content) {
+                const modal = document.createElement('div');
+                modal.style.position = 'fixed';
+                modal.style.left = '0';
+                modal.style.top = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                modal.style.display = 'flex';
+                modal.style.justifyContent = 'center';
+                modal.style.alignItems = 'center';
+                modal.style.zIndex = '1000';
+                modal.style.padding = '1rem';
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.backgroundColor = 'white';
+                modalContent.style.padding = '20px 40px';
+                modalContent.style.borderRadius = '8px';
+                modalContent.style.textAlign = 'center';
+                modalContent.style.maxHeight = '90vh';
+                modalContent.style.overflowY = 'auto';
+
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Cerrar';
+                closeButton.style.marginTop = '20px';
+                closeButton.style.padding = '10px 20px';
+                closeButton.style.border = 'none';
+                closeButton.style.borderRadius = '5px';
+                closeButton.style.backgroundColor = '#10B981';
+                closeButton.style.color = 'white';
+                closeButton.style.cursor = 'pointer';
+
+                modalContent.innerHTML = content;
+                modalContent.appendChild(closeButton);
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+                
+                closeButton.onclick = () => { document.body.removeChild(modal); };
+                modal.onclick = (event) => { if (event.target === modal) { document.body.removeChild(modal); } };
+            }
+        });
+    </script>
+</body>
+</html>
