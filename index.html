@@ -1,556 +1,531 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Villagolf - Mini Golf Scorecard</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f7f3e9;
-    }
-    .score-input {
-      width: 4rem;
-      text-align: center;
-      -moz-appearance: textfield;
-    }
-    .score-input::-webkit-outer-spin-button,
-    .score-input::-webkit-inner-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    .btn {
-      @apply px-4 py-2 font-bold rounded-lg transition-transform transform active:scale-95 shadow-md;
-    }
-    .btn-primary {
-      @apply bg-lime-500 text-white hover:bg-lime-600;
-    }
-    .btn-secondary {
-      @apply bg-gray-300 text-gray-800 hover:bg-gray-400;
-    }
-    .icon-btn {
-      @apply px-2 py-2 text-xl transition-transform transform active:scale-95 rounded-full;
-    }
-    .icon-btn-hole {
-      @apply bg-gray-200 hover:bg-gray-300;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.5);
-      justify-content: center;
-      align-items: center;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarjeta de Juego - Villagolf</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Anton&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .score-input { width: 50px; height: 40px; text-align: center; border-radius: 0.5rem; border: 1px solid #D1D5DB; -moz-appearance: textfield; background-color: white; color: black; font-weight: bold; }
+        .score-input::-webkit-outer-spin-button, .score-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .sticky-col { position: -webkit-sticky; position: sticky; left: 0; background-color: white; z-index: 10; }
+        .trophy { color: #f59e0b; }
+        .social-logo { width: 24px; height: 24px; fill: currentColor; display: inline-block; }
+        #scorecard-section table { min-width: 600px; }
+        #results-table th:first-child, #results-table td:first-child { width: 50px; padding-left: 0.25rem; padding-right: 0.25rem; text-align: center; }
+        .winner-name { background-color: #10B981; color: white !important; }
+        .instagram-color { color: #E1306C; }
+        .facebook-color { color: #1877F2; }
+        .footer-text-color { color: #10B981; }
+    </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-100 text-gray-800 transition-colors duration-300">
 
-  <div id="loading-spinner" class="modal">
-    <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-  </div>
+    <div class="container mx-auto p-4 max-w-7xl">
+        <header class="text-center mb-6">
+            <h1 class="text-3xl md:text-4xl font-bold uppercase tracking-wider" style="font-family: 'Anton', sans-serif; color: #e60a0a;">Tarjeta de Juego</h1>
+            <img src="./images/villagolf-logo.png" alt="Villagolf Minigolf" class="mx-auto mt-2 h-12">
+        </header>
 
-  <div id="app" class="bg-white rounded-2xl shadow-xl w-full max-w-4xl p-6 md:p-10 flex flex-col items-center">
-    
-    <!-- Header de la Aplicación -->
-    <header class="flex flex-col items-center mb-6 w-full">
-      <h1 class="text-4xl md:text-5xl font-extrabold text-lime-600">Villagolf</h1>
-      <p id="time-display" class="text-gray-500 text-center text-lg mt-2 font-mono">00:00:00</p>
-      <div id="game-info" class="text-center text-gray-700 mt-2 text-sm md:text-base"></div>
-    </header>
-
-    <!-- Contenedor de la vista -->
-    <div id="view-container" class="w-full">
-      
-      <!-- Pantalla de Inicio -->
-      <div id="home-view" class="flex flex-col items-center space-y-6">
-        <h2 class="text-2xl font-bold text-gray-800">Mini Golf Scorecard</h2>
-        <div class="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full justify-center">
-          <button id="new-game-btn" class="btn btn-primary w-full md:w-auto">Nueva Partida</button>
-          <button id="load-game-btn" class="btn btn-secondary w-full md:w-auto">Cargar Partida</button>
+        <div id="setup-section" class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Iniciar Nuevo Juego</h2>
+            <div id="player-inputs" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            </div>
+            <button id="start-game-btn" class="mt-6 w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                Iniciar Juego
+            </button>
         </div>
-      </div>
-      
-      <!-- Pantalla de Cargar Partida -->
-      <div id="load-game-view" class="hidden flex-col items-center space-y-4 w-full">
-        <h2 class="text-2xl font-bold text-gray-800">Cargar Partida</h2>
-        <input type="text" id="game-id-input" placeholder="Ingresa el ID de la partida" class="w-full p-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-lime-500 transition-colors">
-        <button id="submit-load-btn" class="btn btn-primary w-full">Cargar</button>
-        <button id="cancel-load-btn" class="btn btn-secondary w-full">Cancelar</button>
-      </div>
 
-      <!-- Pantalla de Configuración de Jugadores -->
-      <div id="players-view" class="hidden flex-col items-center space-y-6 w-full">
-        <h2 class="text-2xl font-bold text-gray-800">Jugadores</h2>
-        <div id="player-list" class="flex flex-col w-full space-y-4"></div>
-        <div class="flex w-full space-x-2">
-          <input type="text" id="new-player-input" placeholder="Nombre del jugador" class="flex-grow p-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-lime-500 transition-colors">
-          <button id="add-player-btn" class="btn btn-primary text-2xl">+</button>
+        <div id="load-game-section" class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-2xl font-semibold mb-4 text-gray-700">Recuperar Partida</h2>
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="game-id-input" placeholder="Ingresa el código de la partida" class="flex-grow px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm">
+                <button id="load-game-btn" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Cargar Partida
+                </button>
+            </div>
         </div>
-        <button id="start-game-btn" class="btn btn-primary w-full">Iniciar Partida</button>
-        <button id="back-players-btn" class="btn btn-secondary w-full">Volver</button>
-      </div>
-      
-      <!-- Pantalla de Juego -->
-      <div id="game-view" class="hidden flex-col items-center w-full">
-        <div id="player-tabs" class="flex justify-center flex-wrap mb-4 w-full"></div>
-        
-        <div id="hole-nav" class="flex items-center justify-between w-full max-w-sm mb-4">
-          <button id="prev-hole-btn" class="icon-btn">&larr;</button>
-          <span id="hole-display" class="text-3xl font-bold text-gray-800">Hoyo 1</span>
-          <button id="next-hole-btn" class="icon-btn">&rarr;</button>
-        </div>
-        
-        <div id="scores-container" class="flex flex-col w-full space-y-4"></div>
-        
-        <div id="game-actions" class="mt-8 flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 w-full justify-center">
-          <button id="finish-game-btn" class="btn btn-primary w-full md:w-auto">Terminar Partida</button>
-          <button id="save-game-btn" class="btn btn-secondary w-full md:w-auto">Guardar y Salir</button>
-        </div>
-      </div>
-      
-      <!-- Pantalla de Resultados -->
-      <div id="results-view" class="hidden flex-col items-center w-full">
-        <h2 class="text-2xl font-bold text-gray-800 mb-4">Resultados Finales</h2>
-        <div id="final-scores-table" class="bg-gray-50 rounded-lg p-4 w-full max-w-lg"></div>
-        <p id="winner-display" class="text-xl md:text-2xl font-bold text-lime-600 mt-4 text-center"></p>
-        <p id="game-id-display" class="text-lg font-bold text-gray-700 mt-4 break-all text-center"></p>
-        <button id="new-game-from-results-btn" class="btn btn-primary w-full max-w-sm mt-6">Nueva Partida</button>
-      </div>
 
+        <div id="scorecard-section" class="hidden">
+            <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
+                <h2 class="text-2xl font-semibold text-gray-700">Tarjeta de Puntuación</h2>
+                <span id="game-id-display" class="font-bold text-gray-600">ID:</span>
+            </div>
+            <div class="table-container bg-white rounded-xl shadow-lg">
+                <table class="w-full text-center">
+                    <thead id="scorecard-head" class="bg-gray-200 text-sm uppercase">
+                    </thead>
+                    <tbody id="scorecard-body">
+                    </tbody>
+                </table>
+            </div>
+            <div id="end-game-container" class="mt-6 text-center">
+                <button id="end-game-btn" class="w-full md:w-auto bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                    Finalizar y Ver Ganador
+                </button>
+            </div>
+            <div id="results-section" class="hidden bg-white p-6 rounded-xl shadow-lg mt-8">
+                <h2 class="text-2xl font-semibold mb-4 text-center text-gray-700">Resultados Finales</h2>
+                <div class="table-container">
+                    <table id="results-table" class="w-full text-center">
+                        <thead class="bg-gray-200 text-sm uppercase">
+                            <tr>
+                                <th class="sticky-col font-semibold">Puesto</th>
+                                <th class="font-semibold text-left">Jugador</th>
+                                <th class="font-semibold">Puntaje</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-6 text-center">
+                    <button id="send-whatsapp-btn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Enviar a WhatsApp
+                    </button>
+                </div>
+            </div>
+            <div class="mt-6 flex flex-col md:flex-row gap-4 justify-center">
+                <button id="rules-btn" class="w-full md:w-auto bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    REGLAS DE JUEGO Y REGLAMENTO
+                </button>
+                <button id="reset-game-btn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    Nuevo Juego
+                </button>
+            </div>
+        </div>
     </div>
-  </div>
-
-  <script>
-    // Variables globales
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyfD0b0w3b33-Q8-h3-v2mYyC_99S6-28rC1aI3_8-C9T1-h/exec'; // Reemplaza con la URL de tu script
-    const HOLES = 18;
-    
-    let currentView = 'home-view';
-    let gameId = '';
-    let players = [];
-    let scores = [];
-    let currentHole = 1;
-    let activePlayerIndex = 0;
-    let startTime = null;
-    let timerInterval = null;
-
-    // Elementos de la UI
-    const loadingSpinner = document.getElementById('loading-spinner');
-    const viewContainer = document.getElementById('view-container');
-    const timeDisplay = document.getElementById('time-display');
-
-    // Muestra/Oculta el spinner de carga
-    function showLoading(show) {
-      loadingSpinner.style.display = show ? 'flex' : 'none';
-    }
-
-    // Navegación entre vistas
-    function switchView(viewId) {
-      document.querySelectorAll('#view-container > div').forEach(div => {
-        div.style.display = 'none';
-      });
-      document.getElementById(viewId).style.display = 'flex';
-      currentView = viewId;
-    }
-
-    // Funciones para el cronómetro
-    function startTimer() {
-      if (timerInterval) clearInterval(timerInterval);
-      timerInterval = setInterval(updateTimer, 1000);
-    }
-    
-    function stopTimer() {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-
-    function updateTimer() {
-      if (!startTime) return;
-      const now = new Date().getTime();
-      const elapsed = now - startTime;
-      const hours = Math.floor(elapsed / 3600000);
-      const minutes = Math.floor((elapsed % 3600000) / 60000);
-      const seconds = Math.floor((elapsed % 60000) / 1000);
-      
-      const formatTime = (unit) => unit.toString().padStart(2, '0');
-      timeDisplay.textContent = `${formatTime(hours)}:${formatTime(minutes)}:${formatTime(seconds)}`;
-    }
-
-    // Carga inicial de la vista
-    document.addEventListener('DOMContentLoaded', () => {
-      switchView('home-view');
-      showLoading(false);
-
-      // Manejar la URL para cargar partidas
-      const params = new URLSearchParams(window.location.search);
-      const gameIdFromUrl = params.get('game_id');
-      if (gameIdFromUrl) {
-        document.getElementById('game-id-input').value = gameIdFromUrl;
-        loadGame();
-      }
-    });
-
-    // --- Funciones de Lógica del Juego ---
-
-    function generateGameId() {
-      return `game_${Date.now()}`;
-    }
-
-    function renderPlayers() {
-      const playerList = document.getElementById('player-list');
-      playerList.innerHTML = '';
-      players.forEach((player, index) => {
-        const playerDiv = document.createElement('div');
-        playerDiv.className = 'flex items-center space-x-2 w-full';
-        playerDiv.innerHTML = `
-          <input type="text" value="${player.name}" placeholder="Nombre del jugador" class="flex-grow p-3 rounded-lg border-2 border-gray-300 focus:outline-none focus:ring-2 focus:ring-lime-500 transition-colors">
-          <button data-index="${index}" class="remove-player-btn text-2xl text-red-500 font-bold">&times;</button>
-        `;
-        playerDiv.querySelector('.remove-player-btn').addEventListener('click', (e) => removePlayer(e.target.dataset.index));
-        playerList.appendChild(playerDiv);
-      });
-    }
-
-    function addPlayer() {
-      const input = document.getElementById('new-player-input');
-      const name = input.value.trim();
-      if (name) {
-        players.push({ id: players.length + 1, name: name });
-        renderPlayers();
-        input.value = '';
-      }
-    }
-
-    function removePlayer(index) {
-      players.splice(index, 1);
-      renderPlayers();
-    }
-
-    function updatePlayerNames() {
-      document.querySelectorAll('#player-list input').forEach((input, index) => {
-        players[index].name = input.value.trim();
-      });
-    }
-
-    function renderTabs() {
-      const playerTabs = document.getElementById('player-tabs');
-      playerTabs.innerHTML = '';
-      players.forEach((player, index) => {
-        const tabBtn = document.createElement('button');
-        tabBtn.className = `btn ${activePlayerIndex === index ? 'btn-primary' : 'btn-secondary'} mx-1 mb-2`;
-        tabBtn.textContent = player.name;
-        tabBtn.addEventListener('click', () => {
-          activePlayerIndex = index;
-          renderTabs();
-          renderScores();
-        });
-        playerTabs.appendChild(tabBtn);
-      });
-    }
-
-    function renderScores() {
-      const scoresContainer = document.getElementById('scores-container');
-      scoresContainer.innerHTML = '';
-      
-      const player = players[activePlayerIndex];
-      if (!player) return;
-
-      const holeScore = scores[player.id - 1] ? scores[player.id - 1][currentHole - 1] : '';
-
-      scoresContainer.innerHTML = `
-        <div class="flex flex-col items-center p-4 rounded-lg bg-gray-50 shadow-sm w-full">
-          <h3 class="text-xl font-semibold text-gray-800 mb-2">${player.name}</h3>
-          <div class="flex items-center space-x-4">
-            <button id="decrement-score" class="icon-btn-hole bg-red-400 text-white font-bold">&minus;</button>
-            <input type="number" id="current-score-input" value="${holeScore}" class="score-input p-2 rounded-lg border-2 border-gray-300 text-3xl font-bold focus:outline-none focus:ring-2 focus:ring-lime-500" min="0">
-            <button id="increment-score" class="icon-btn-hole bg-lime-500 text-white font-bold">&plus;</button>
-          </div>
+    <footer class="bg-gray-200 text-center p-4 mt-8 transition-colors duration-300">
+        <p class="font-bold mb-2 footer-text-color">@villagolfmini</p>
+        <div class="flex justify-center space-x-4">
+            <a href="https://www.instagram.com/villagolfmini" target="_blank" rel="noopener noreferrer" class="instagram-color hover:text-pink-600 transition-colors duration-200">
+                <svg class="social-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.06 3.252.148 5.868 2.866 6.016 6.118.048 1.266.06 1.646.06 4.85s-.012 3.584-.06 4.85c-.148 3.252-2.866 5.868-6.016 6.118-1.266.048-1.646.06-4.85.06s-3.584-.012-4.85-.06c-3.252-.148-5.868-2.866-6.016-6.118-.048-1.266-.06-1.646-.06-4.85s.012-3.584.06-4.85c.148-3.252 2.866-5.868 6.016-6.118 1.266-.048 1.646-.06 4.85-.06zM12 4.326c-2.932 0-3.28.012-4.41.056-2.222.102-3.132 1.01-3.234 3.234-.044 1.13-.056 1.478-.056 4.41s.012 3.28.056 4.41c.102 2.222 1.01 3.132 3.234 3.234 1.13.044 1.478.056 4.41.056s3.28-.012 4.41-.056c2.222-.102 3.132-1.01 3.234-3.234.044-1.13.056-1.478.056-4.41s-.012-3.28-.056-4.41c-.102-2.222-1.01-3.132-3.234-3.234-1.13-.044-1.478-.056-4.41-.056zM12 9.176c-1.554 0-2.824 1.27-2.824 2.824s1.27 2.824 2.824 2.824 2.824-1.27 2.824-2.824c0-1.554-1.27-2.824-2.824-2.824zM12 11.339c-.886 0-1.602.716-1.602 1.602s.716 1.602 1.602 1.602 1.602-.716 1.602-1.602c0-.886-.716-1.602-1.602-1.602zm3.25-3.693c-.45 0-.816.365-.816.816s.365.816.816.816.816-.365.816-.816-.365-.816-.816-.816z"/></svg>
+            </a>
+            <a href="https://www.facebook.com/villagolfmini" target="_blank" rel="noopener noreferrer" class="facebook-color hover:text-blue-700 transition-colors duration-200">
+                <svg class="social-logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.999c0-.879.444-1.001 1.114-1.001h2.886v-3h-3.886c-4.145 0-5.114 3.292-5.114 4.886v2.114z"/></svg>
+            </a>
         </div>
-      `;
+    </footer>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const playerInputsContainer = document.getElementById('player-inputs');
+            const startGameBtn = document.getElementById('start-game-btn');
+            const loadGameBtn = document.getElementById('load-game-btn');
+            const gameIdInput = document.getElementById('game-id-input');
+            const gameIdDisplay = document.getElementById('game-id-display');
+            const setupSection = document.getElementById('setup-section');
+            const loadSection = document.getElementById('load-game-section');
+            const scorecardSection = document.getElementById('scorecard-section');
+            const scorecardHead = document.getElementById('scorecard-head');
+            const scorecardBody = document.getElementById('scorecard-body');
+            const resetGameBtn = document.getElementById('reset-game-btn');
+            const endGameBtn = document.getElementById('end-game-btn');
+            const endGameContainer = document.getElementById('end-game-container');
+            const resultsSection = document.getElementById('results-section');
+            const resultsBody = document.getElementById('results-body');
+            const sendWhatsappBtn = document.getElementById('send-whatsapp-btn');
+            const rulesBtn = document.getElementById('rules-btn');
 
-      document.getElementById('current-score-input').addEventListener('input', updateScore);
-      document.getElementById('decrement-score').addEventListener('click', () => adjustScore(-1));
-      document.getElementById('increment-score').addEventListener('click', () => adjustScore(1));
-    }
+            let startTime;
+            let currentGameId = null;
+            let isSaving = false;
+            let saveTimeout;
 
-    function updateScore(e) {
-      const score = parseInt(e.target.value) || 0;
-      const playerId = players[activePlayerIndex].id;
-      if (!scores[playerId - 1]) {
-        scores[playerId - 1] = Array(HOLES).fill(null);
-      }
-      scores[playerId - 1][currentHole - 1] = score;
-    }
+            // REEMPLAZA ESTE URL con el URL de tu Google Apps Script
+            const webAppUrl = 'https://script.google.com/macros/s/AKfycbyCuyyk7qbO7Py6V4hcAWrbgL9_08-1kqt4r5v0DTkR8J0Osm2KsFZK8q9GhUlk8Vm4ig/exec';
 
-    function adjustScore(change) {
-      const input = document.getElementById('current-score-input');
-      let score = parseInt(input.value) || 0;
-      score = Math.max(0, score + change);
-      input.value = score;
-      const playerId = players[activePlayerIndex].id;
-      if (!scores[playerId - 1]) {
-        scores[playerId - 1] = Array(HOLES).fill(null);
-      }
-      scores[playerId - 1][currentHole - 1] = score;
-    }
+            for (let i = 1; i <= 8; i++) {
+                const inputDiv = document.createElement('div');
+                inputDiv.innerHTML = `<label for="player${i}" class="block text-sm font-medium text-gray-700">Jugador ${i}</label><input type="text" id="player${i}" name="player${i}" placeholder="Nombre del Jugador ${i}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 focus:bg-[#12bf33] focus:text-white sm:text-sm">`;
+                playerInputsContainer.appendChild(inputDiv);
+            }
 
-    function goToHole(hole) {
-      currentHole = Math.max(1, Math.min(HOLES, hole));
-      document.getElementById('hole-display').textContent = `Hoyo ${currentHole}`;
-      renderScores();
-    }
+            startGameBtn.addEventListener('click', function() {
+                const playerNames = [];
+                for (let i = 1; i <= 8; i++) {
+                    const input = document.getElementById(`player${i}`);
+                    if (input.value.trim() !== '') {
+                        playerNames.push(input.value.trim());
+                    }
+                }
+                if (playerNames.length > 0) {
+                    currentGameId = generateUniqueId();
+                    startTime = new Date();
+                    gameIdDisplay.textContent = `ID de Partida: ${currentGameId}`;
+                    setupScorecard(playerNames);
+                    setupSection.classList.add('hidden');
+                    loadSection.classList.add('hidden');
+                    scorecardSection.classList.remove('hidden');
+                    endGameContainer.classList.remove('hidden');
+                    endGameBtn.disabled = false;
+                    showModal(`¡Partida iniciada! Tu código es: ${currentGameId}`);
+                    // Guarda la partida inicial al empezar el juego
+                    saveGame(false);
+                } else {
+                    showModal('Por favor, ingresa el nombre de al menos un jugador.');
+                }
+            });
 
-    function calculateFinalScores() {
-      const finalScores = players.map((player, index) => {
-        const playerScore = scores[index] || Array(HOLES).fill(0);
-        const total = playerScore.reduce((sum, current) => sum + (current || 0), 0);
-        return { name: player.name, total: total };
-      });
-      return finalScores;
-    }
+            loadGameBtn.addEventListener('click', loadGame);
 
-    function getWinner(finalScores) {
-      if (!finalScores || finalScores.length === 0) return null;
-      const sortedScores = finalScores.sort((a, b) => a.total - b.total);
-      const winner = sortedScores[0];
-      const allWinners = sortedScores.filter(s => s.total === winner.total);
-      
-      if (allWinners.length > 1) {
-        const names = allWinners.map(w => w.name);
-        return { name: names.join(' y '), total: winner.total, tie: true };
-      }
-      
-      return winner;
-    }
+            resetGameBtn.addEventListener('click', function() {
+                if (confirm('¿Estás seguro de que quieres empezar un nuevo juego? Se perderán todas las puntuaciones.')) {
+                    window.location.reload();
+                }
+            });
 
-    function renderResults(finalScores) {
-      const table = document.getElementById('final-scores-table');
-      table.innerHTML = `
-        <div class="flex font-bold text-gray-700 border-b border-gray-200 py-2">
-          <span class="flex-1">Jugador</span>
-          <span class="w-1/4 text-center">Total</span>
-        </div>
-      `;
-      finalScores.sort((a, b) => a.total - b.total).forEach(score => {
-        const row = document.createElement('div');
-        row.className = 'flex items-center py-2 border-b border-gray-100';
-        row.innerHTML = `
-          <span class="flex-1 text-gray-800">${score.name}</span>
-          <span class="w-1/4 text-center text-gray-600 font-semibold">${score.total}</span>
-        `;
-        table.appendChild(row);
-      });
-      
-      const winner = getWinner(finalScores);
-      const winnerDisplay = document.getElementById('winner-display');
-      if (winner) {
-        if (winner.tie) {
-          winnerDisplay.textContent = `¡Empate entre ${winner.name} con ${winner.total} golpes!`;
-        } else {
-          winnerDisplay.textContent = `¡El ganador es ${winner.name} con ${winner.total} golpes!`;
-        }
-      } else {
-        winnerDisplay.textContent = 'No hay resultados para mostrar.';
-      }
-    }
-    
-    // --- Lógica de Comunicación con Apps Script ---
-    async function saveGame(isFinal = false) {
-      showLoading(true);
-      stopTimer();
-      
-      const endTime = new Date();
-      // Se calcula la duración en milisegundos y luego se convierte a minutos
-      const durationMs = endTime.getTime() - startTime;
-      const durationMinutes = Math.round(durationMs / 60000);
-      
-      const finalScores = isFinal ? calculateFinalScores() : null;
-      const winner = isFinal ? getWinner(finalScores) : null;
-      
-      // Creamos un array de nombres y un array de puntajes de hoyo para la hoja de cálculo
-      const playerNames = players.map(p => p.name).join(', ');
-      const holeScores = JSON.stringify(scores);
-      
-      const finalData = {
-        game_id: gameId,
-        fecha: new Date().toLocaleDateString('es-ES'),
-        hora_inicio: startTime, // Enviamos el timestamp numérico
-        hora_fin: endTime.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'}),
-        duracion_minutos: durationMinutes,
-        nombres_jugadores: playerNames,
-        puntajes_hoyos: holeScores,
-        puntajes_finales: finalScores ? JSON.stringify(finalScores) : '',
-        ganador: winner ? winner.name : ''
-      };
-      
-      try {
-        const response = await fetch(SCRIPT_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(finalData)
+            rulesBtn.addEventListener('click', function() {
+                showModal(`
+                    <div class="bg-white p-6 rounded-md text-gray-800">
+                        <h3 class="font-bold text-xl mb-4 text-gray-700">REGLAS DE JUEGO Y REGLAMENTO</h3>
+                        <p class="text-left mb-2 text-gray-700">
+                            <strong>Turnos de salida:</strong> El primer golpe en cada hoyo debe jugarse desde el área de salida. El orden de salida para el primer golpe del juego lo eligen los jugadores.<br>
+                            <strong>Turnos posteriores:</strong> En cada hoyo, el jugador cuya bola esté más cerca del hoyo es quien golpea primero.<br>
+                            <strong>Número de Jugadores:</strong> El número máximo de participantes por grupo es de 8 personas.<br>
+                            <strong>Recorrido:</strong> Deben jugar los 18 hoyos en orden consecutivo, sin saltarse ninguno.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Penalizaciones:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            Si la bola sale de los límites de la pista, del área de juego o cae en una trampa de arena o agua, debes colocarla en el césped por donde salió y sumar un punto de penalización.<br>
+                            Si la bola golpea un borde, puedes moverla 10 cm con el palo, sin penalización.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Puntuación:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            El puntaje máximo por cada hoyo es de 8 golpes. Si después de 8 golpes no has logrado meter la bola, anota 8 puntos y pasa al siguiente hoyo.<br>
+                            Gana quien complete los 18 hoyos con el menor puntaje total.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Regla de juego con otras bolas:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            No se permite meter la bola de otro jugador. Si tu bola golpea la de otro jugador y esta entra en el hoyo, la bola golpeada debe ser devuelta a su posición original. Tu golpe sí cuenta para ti y continuas tu juego desde la posición donde se detuvo tu bola.<br>
+                            Si dos bolas quedan pegadas, la que debe jugarse (la más cercana al hoyo) se puede levantar para que la otra no la estorbe. Luego, la bola se coloca de nuevo en su lugar y se juega el golpe.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Restricciones:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            Está prohibido repetir un hoyo o jugar un hoyo adicional. Si lo haces, se considera una ronda de juego adicional.<br>
+                            Prestar un palo a otro visitante genera el cobro de un juego adicional.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Seguridad:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            Está prohibido hacer swing o levantar el palo a más de la altura de la rodilla.<br>
+                            No arrastres los palos, ni los golpees contra rocas, ladrillos o cualquier otra superficie dura que no sea la bola.<br>
+                            Los usuarios se hacen responsables de los implementos en caso de perdida o daño, y cancelarán el valor de la reposición establecido por la caja.<br>
+                            El usuario es responsable de accidentes o daños causados a instalaciones o terceros.<br>
+                            Los menores de 7 años deben jugar acompañados por un adulto responsable.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Lluvia:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            En caso de lluvia, el juego debe suspenderse. Si no has completado 9 hoyos, se te entregará un bono para otro día.<br>
+                        </p>
+                    </div>
+                `);
+            });
+
+            endGameBtn.addEventListener('click', showWinner);
+
+            function generateUniqueId() {
+                return Math.random().toString(36).substring(2, 8).toUpperCase();
+            }
+
+            function setupScorecard(players) {
+                scorecardHead.innerHTML = '';
+                scorecardBody.innerHTML = '';
+
+                const headerRow1 = document.createElement('tr');
+                headerRow1.innerHTML = `<th rowspan="2" class="sticky-col font-semibold text-gray-900 bg-gray-200">Jugador</th>
+                                        <th colspan="9" class="font-semibold text-white bg-amber-500">Hoyos del 1 al 9</th>
+                                        <th rowspan="2" class="font-semibold bg-orange-100 text-orange-900">SUMA</th>
+                                        <th colspan="9" class="font-semibold text-white bg-amber-500">Hoyos del 10 al 18</th>
+                                        <th rowspan="2" class="font-semibold bg-orange-100 text-orange-900">SUMA</th>
+                                        <th rowspan="2" class="font-semibold bg-green-100 text-green-900">TOTAL</th>`;
+                scorecardHead.appendChild(headerRow1);
+
+                const headerRow2 = document.createElement('tr');
+                let headerHTML = '';
+                for (let i = 1; i <= 9; i++) headerHTML += `<th class="bg-gray-200 text-black">${i}</th>`;
+                for (let i = 10; i <= 18; i++) headerHTML += `<th class="bg-gray-200 text-black">${i}</th>`;
+                headerRow2.innerHTML = headerHTML;
+                scorecardHead.appendChild(headerRow2);
+                
+                players.forEach((name, index) => {
+                    const playerRow = document.createElement('tr');
+                    playerRow.id = `player-row-${index}`;
+                    playerRow.className = 'border-b border-gray-200';
+
+                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-white" data-name="${name}">${name}</td>`;
+                    
+                    for (let i = 1; i <= 9; i++) {
+                        rowHTML += `<td class="bg-white"><input type="number" min="1" max="8" class="score-input bg-white text-black" data-player="${index}" data-hole="${i}"></td>`;
+                    }
+                    rowHTML += `<td id="out-total-${index}" class="font-bold bg-orange-100 text-orange-900">0</td>`;
+
+                    for (let i = 10; i <= 18; i++) {
+                        rowHTML += `<td class="bg-white"><input type="number" min="1" max="8" class="score-input bg-white text-black" data-player="${index}" data-hole="${i}"></td>`;
+                    }
+                    rowHTML += `<td id="in-total-${index}" class="font-bold bg-orange-100 text-orange-900">0</td>`;
+                    rowHTML += `<td id="grand-total-${index}" class="font-bold text-xl text-green-600 bg-green-50">0</td>`;
+
+                    playerRow.innerHTML = rowHTML;
+                    scorecardBody.appendChild(playerRow);
+                });
+
+                document.querySelectorAll('.score-input').forEach(input => {
+                    input.addEventListener('input', updateAndSave);
+                });
+            }
+
+            // --- Nuevo: Funcion para detectar cambios y guardar con retraso (debounce) ---
+            function updateAndSave(event) {
+                updateScores(event); // Primero actualiza los totales
+                if (saveTimeout) {
+                    clearTimeout(saveTimeout);
+                }
+                saveTimeout = setTimeout(() => {
+                    saveGame(false); // Luego guarda con la bandera de "no es final"
+                }, 2000); // 2 segundos de retraso
+            }
+
+            function updateScores(event) {
+                if (parseInt(event.target.value) > 8) {
+                    event.target.value = 8;
+                }
+
+                const playerIndex = event.target.dataset.player;
+                const playerRow = document.getElementById(`player-row-${playerIndex}`);
+                
+                let outTotal = 0;
+                let inTotal = 0;
+
+                const allInputs = playerRow.querySelectorAll('input[data-hole]');
+                allInputs.forEach(input => {
+                    const hole = parseInt(input.dataset.hole);
+                    const value = parseInt(input.value) || 0;
+                    if (hole <= 9) {
+                        outTotal += value;
+                    } else {
+                        inTotal += value;
+                    }
+                });
+
+                document.getElementById(`out-total-${playerIndex}`).textContent = outTotal;
+                document.getElementById(`in-total-${playerIndex}`).textContent = inTotal;
+                document.getElementById(`grand-total-${playerIndex}`).textContent = outTotal + inTotal;
+            }
+
+            function showWinner() {
+                const playerScores = [];
+                const rows = scorecardBody.querySelectorAll('tr');
+                const lowestScore = Infinity;
+
+                rows.forEach(row => {
+                    const nameCell = row.querySelector('td.sticky-col');
+                    const name = nameCell.dataset.name;
+                    const score = parseInt(row.querySelector('[id^="grand-total-"]').textContent);
+                    playerScores.push({ name: name, score: score });
+                });
+
+                playerScores.sort((a, b) => a.score - b.score);
+                const lowestFinalScore = playerScores.length > 0 ? playerScores[0].score : 0;
+                
+                endGameBtn.disabled = true;
+                endGameBtn.textContent = 'Partida Finalizada';
+                
+                // Lógica de guardado al finalizar el juego (con la bandera de "es final")
+                saveGame(true, playerScores, lowestFinalScore);
+
+                resultsSection.classList.remove('hidden');
+                resultsBody.innerHTML = '';
+                
+                playerScores.forEach((player, index) => {
+                    const playerRow = document.createElement('tr');
+                    playerRow.className = 'border-b border-gray-200';
+                    const position = index + 1;
+                    
+                    let playerNameHTML = player.name;
+                    let nameCellClass = "font-bold text-left text-gray-900";
+                    
+                    if (player.score === lowestFinalScore) {
+                        playerNameHTML += ` <span class="trophy" title="Ganador">🏆</span>`;
+                        nameCellClass += " winner-name";
+                    }
+                    
+                    playerRow.innerHTML = `
+                        <td class="sticky-col font-bold text-left text-gray-900 bg-white">${position}</td>
+                        <td class="${nameCellClass}">${playerNameHTML}</td>
+                        <td class="font-bold">${player.score}</td>
+                    `;
+                    resultsBody.appendChild(playerRow);
+                });
+            }
+            
+            function loadGame() {
+                const gameId = gameIdInput.value.trim();
+                if (!gameId) {
+                    showModal('Por favor, ingresa un código de partida.');
+                    return;
+                }
+
+                fetch(`${webAppUrl}?game_id=${gameId}`, { method: 'GET', mode: 'cors' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'error' || !data.nombres_jugadores || !data.puntajes_hoyos) {
+                            showModal(`Error: ${data.message || 'No se pudo cargar la partida. Verifica el código.'}`);
+                            return;
+                        }
+                        
+                        currentGameId = data.game_id;
+                        startTime = new Date(data.hora_inicio);
+                        const playerNames = data.nombres_jugadores.split(', ');
+                        const scoresPerPlayer = data.puntajes_hoyos.split(';').map(s => s.split(',').map(val => val === '' ? 0 : Number(val)));
+                        
+                        setupScorecard(playerNames);
+                        
+                        scoresPerPlayer.forEach((scores, playerIndex) => {
+                            scores.forEach((score, holeIndex) => {
+                                const input = document.querySelector(`input[data-player="${playerIndex}"][data-hole="${holeIndex + 1}"]`);
+                                if (input) {
+                                    input.value = score === 0 ? '' : score;
+                                }
+                            });
+                        });
+                        
+                        document.querySelectorAll('.score-input').forEach(input => {
+                            updateScores({ target: input });
+                        });
+
+                        gameIdDisplay.textContent = `ID de Partida: ${currentGameId}`;
+                        setupSection.classList.add('hidden');
+                        loadSection.classList.add('hidden');
+                        scorecardSection.classList.remove('hidden');
+                        endGameContainer.classList.remove('hidden');
+                        endGameBtn.disabled = false;
+                        
+                        showModal('Partida cargada exitosamente. Continúa jugando.');
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar la partida:', error);
+                        showModal('No se pudo cargar la partida. Verifica el código.');
+                    });
+            }
+
+            // --- Nuevo: Funcion de guardado, ahora recibe un argumento para indicar si es el guardado final ---
+            function saveGame(isFinal, playerScores, lowestFinalScore) {
+                const allPlayerNames = [];
+                const allHoleScores = [];
+                const finalScores = [];
+                const rows = scorecardBody.querySelectorAll('tr');
+
+                rows.forEach(row => {
+                    const nameCell = row.querySelector('td.sticky-col');
+                    const name = nameCell.dataset.name;
+                    allPlayerNames.push(name);
+
+                    const scores = [];
+                    row.querySelectorAll('.score-input').forEach(input => {
+                        scores.push(input.value || '');
+                    });
+                    allHoleScores.push(scores.join(','));
+
+                    const totalScore = parseInt(row.querySelector('[id^="grand-total-"]').textContent);
+                    finalScores.push(totalScore);
+                });
+
+                // Si es el guardado final, calcula la duración
+                const durationMinutes = isFinal ? Math.round((new Date() - startTime) / 60000) : '';
+
+                const finalData = {
+                    game_id: currentGameId,
+                    fecha: new Date().toLocaleDateString('es-ES'),
+                    hora_inicio: startTime.toLocaleTimeString('es-ES'),
+                    hora_fin: isFinal ? new Date().toLocaleTimeString('es-ES') : '',
+                    duracion_minutos: durationMinutes,
+                    nombres_jugadores: allPlayerNames.join(', '),
+                    puntajes_hoyos: allHoleScores.join(';'),
+                    puntajes_finales: finalScores.join(', '),
+                    ganador: isFinal ? playerScores[0].score === lowestFinalScore ? playerScores[0].name : 'Empate' : ''
+                };
+
+                fetch(webAppUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(finalData),
+                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'no-cors'
+                })
+                .then(response => {
+                    console.log('Datos guardados correctamente.');
+                    isSaving = false;
+                })
+                .catch(error => {
+                    console.error('Error al guardar datos:', error);
+                    isSaving = false;
+                });
+            }
+
+            sendWhatsappBtn.addEventListener('click', sendToWhatsApp);
+
+            function sendToWhatsApp() {
+                const resultsTable = document.getElementById('results-body');
+                let message = "¡Resultados de Villagolf Golfito!\n\n";
+                
+                const rows = resultsTable.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const position = row.children[0].textContent;
+                    const playerName = row.children[1].textContent.replace(' 🏆', '').trim();
+                    const score = row.children[2].textContent;
+                    message += `${position}. ${playerName}: ${score} puntos\n`;
+                });
+
+                message += `\n¡Gracias por elegirnos! Comparte tu opinión de tu visita a villagolf, en https://g.page/r/CdgoCw4lsr0rEAE/review\nComo muestra de nuestro aprecio, disfruta de un bono de cortesía.\n¡Esperamos verte pronto!`;
+                
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+            }
+            
+            function showModal(content) {
+                const modal = document.createElement('div');
+                modal.style.position = 'fixed';
+                modal.style.left = '0';
+                modal.style.top = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                modal.style.display = 'flex';
+                modal.style.justifyContent = 'center';
+                modal.style.alignItems = 'center';
+                modal.style.zIndex = '1000';
+                modal.style.padding = '1rem';
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.backgroundColor = 'white';
+                modalContent.style.padding = '20px 40px';
+                modalContent.style.borderRadius = '8px';
+                modalContent.style.textAlign = 'center';
+                modalContent.style.maxHeight = '90vh';
+                modalContent.style.overflowY = 'auto';
+
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Cerrar';
+                closeButton.style.marginTop = '20px';
+                closeButton.style.padding = '10px 20px';
+                closeButton.style.border = 'none';
+                closeButton.style.borderRadius = '5px';
+                closeButton.style.backgroundColor = '#10B981';
+                closeButton.style.color = 'white';
+                closeButton.style.cursor = 'pointer';
+
+                modalContent.innerHTML = content;
+                modalContent.appendChild(closeButton);
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+                
+                closeButton.onclick = () => { document.body.removeChild(modal); };
+                modal.onclick = (event) => { if (event.target === modal) { document.body.removeChild(modal); } };
+            }
         });
-        const result = await response.json();
-        
-        if (result.status === 'success') {
-          console.log('Partida guardada correctamente.');
-          if (isFinal) {
-            document.getElementById('game-id-display').textContent = `ID de Partida: ${gameId}`;
-            renderResults(finalScores);
-            switchView('results-view');
-          } else {
-            // Manejar guardar y salir
-            switchView('home-view');
-          }
-        } else {
-          console.error('Error al guardar la partida:', result.message);
-        }
-      } catch (error) {
-        console.error('Error en la conexión:', error);
-      } finally {
-        showLoading(false);
-      }
-    }
-
-    async function loadGame() {
-      const idToLoad = document.getElementById('game-id-input').value.trim();
-      if (!idToLoad) {
-        alert('Por favor, ingresa un ID de partida.');
-        return;
-      }
-      
-      showLoading(true);
-      
-      try {
-        const response = await fetch(`${SCRIPT_URL}?game_id=${idToLoad}`);
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-          gameId = data.game_id;
-          players = JSON.parse(data.nombres_jugadores);
-          scores = JSON.parse(data.puntajes_hoyos);
-          startTime = data.hora_inicio_timestamp; // <-- Usamos el timestamp para el cálculo
-          
-          document.getElementById('game-info').innerHTML = `
-            <p>ID: <span class="font-bold">${gameId}</span></p>
-            <p>Inicio: <span class="font-bold">${data.hora_inicio_display}</span></p>
-          `;
-
-          // Validar que scores tiene la longitud correcta
-          if (!scores || scores.length !== players.length) {
-            scores = players.map(() => Array(HOLES).fill(null));
-          }
-
-          // Iniciar la UI del juego
-          renderTabs();
-          goToHole(1);
-          startTimer();
-          switchView('game-view');
-        } else {
-          alert(`Error: ${data.message}`);
-          switchView('home-view');
-        }
-      } catch (error) {
-        alert('Error al cargar la partida. Verifica el ID.');
-        console.error(error);
-      } finally {
-        showLoading(false);
-      }
-    }
-
-    // --- Listeners de Botones ---
-
-    // Pantalla de Inicio
-    document.getElementById('new-game-btn').addEventListener('click', () => {
-      gameId = generateGameId();
-      players = [];
-      scores = [];
-      renderPlayers();
-      switchView('players-view');
-    });
-
-    document.getElementById('load-game-btn').addEventListener('click', () => {
-      switchView('load-game-view');
-    });
-
-    // Pantalla de Cargar Partida
-    document.getElementById('submit-load-btn').addEventListener('click', loadGame);
-    document.getElementById('cancel-load-btn').addEventListener('click', () => {
-      document.getElementById('game-id-input').value = '';
-      switchView('home-view');
-    });
-    
-    // Pantalla de Jugadores
-    document.getElementById('add-player-btn').addEventListener('click', addPlayer);
-    document.getElementById('start-game-btn').addEventListener('click', () => {
-      updatePlayerNames();
-      if (players.length > 0) {
-        scores = players.map(() => Array(HOLES).fill(null));
-        currentHole = 1;
-        activePlayerIndex = 0;
-        
-        // --- CAMBIO IMPORTANTE ---
-        // Guardamos el tiempo de inicio como un timestamp numérico
-        startTime = new Date().getTime(); 
-        
-        document.getElementById('game-info').innerHTML = `
-          <p>ID: <span class="font-bold">${gameId}</span></p>
-          <p>Inicio: <span class="font-bold">${new Date(startTime).toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'})}</span></p>
-        `;
-        renderTabs();
-        renderScores();
-        startTimer();
-        switchView('game-view');
-      } else {
-        alert('Debes agregar al menos un jugador para empezar.');
-      }
-    });
-    document.getElementById('back-players-btn').addEventListener('click', () => {
-      switchView('home-view');
-    });
-
-    // Pantalla de Juego
-    document.getElementById('prev-hole-btn').addEventListener('click', () => goToHole(currentHole - 1));
-    document.getElementById('next-hole-btn').addEventListener('click', () => goToHole(currentHole + 1));
-    document.getElementById('finish-game-btn').addEventListener('click', () => {
-      if (confirm('¿Estás seguro que deseas terminar la partida?')) {
-        saveGame(true);
-      } else {
-        // El usuario canceló, volvemos a iniciar el temporizador
-        startTimer();
-      }
-    });
-    document.getElementById('save-game-btn').addEventListener('click', () => {
-      if (confirm('¿Estás seguro que deseas guardar y salir?')) {
-        saveGame(false);
-      } else {
-        // El usuario canceló, volvemos a iniciar el temporizador
-        startTimer();
-      }
-    });
-    
-    // Pantalla de Resultados
-    document.getElementById('new-game-from-results-btn').addEventListener('click', () => {
-      // Reiniciar todas las variables
-      gameId = '';
-      players = [];
-      scores = [];
-      currentHole = 1;
-      activePlayerIndex = 0;
-      startTime = null;
-      stopTimer();
-      timeDisplay.textContent = '00:00:00';
-      document.getElementById('game-info').innerHTML = '';
-      switchView('home-view');
-    });
-
-  </script>
+    </script>
 </body>
 </html>
