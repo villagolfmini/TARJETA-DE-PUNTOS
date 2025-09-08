@@ -53,11 +53,7 @@
         <div id="scorecard-section" class="hidden">
             <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Tarjeta de Puntuación</h2>
-                                <p class="font-bold text-gray-600">
-                    ID de Partida: 
-                    <span id="gameIdDisplay" class="font-normal text-blue-500"></span> 
-                    <span id="copyButton" class="ml-2 text-sm text-gray-500 hover:text-blue-500 cursor-pointer" onclick="copyGameId()">[Copiar]</span>
-                </p>
+                <span id="game-id-display" class="font-bold text-gray-600">ID:</span>
             </div>
             <div class="table-container bg-white rounded-xl shadow-lg">
                 <table class="w-full text-center">
@@ -120,7 +116,7 @@
             const startGameBtn = document.getElementById('start-game-btn');
             const loadGameBtn = document.getElementById('load-game-btn');
             const gameIdInput = document.getElementById('game-id-input');
-            const gameIdDisplay = document.getElementById('gameIdDisplay');
+            const gameIdDisplay = document.getElementById('game-id-display');
             const setupSection = document.getElementById('setup-section');
             const loadSection = document.getElementById('load-game-section');
             const scorecardSection = document.getElementById('scorecard-section');
@@ -157,8 +153,7 @@
                 if (playerNames.length > 0) {
                     currentGameId = generateUniqueId();
                     startTime = new Date();
-                    // ACTUALIZACIÓN: Se muestra solo el ID en el nuevo span
-                    gameIdDisplay.textContent = `${currentGameId}`;
+                    gameIdDisplay.textContent = `ID de Partida: ${currentGameId}`;
                     setupScorecard(playerNames);
                     setupSection.classList.add('hidden');
                     loadSection.classList.add('hidden');
@@ -385,7 +380,7 @@
                         
                         document.querySelectorAll('.score-input').forEach(input => updateScores({target: input}));
 
-                        gameIdDisplay.textContent = `${currentGameId}`;
+                        gameIdDisplay.textContent = `ID de Partida: ${currentGameId}`;
                         setupSection.classList.add('hidden');
                         loadSection.classList.add('hidden');
                         scorecardSection.classList.remove('hidden');
@@ -454,23 +449,6 @@
                 const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
                 window.open(whatsappUrl, '_blank');
             }
-
-            // ACTUALIZACIÓN: Se agrega la función para copiar al portapapeles
-            function copyGameId() {
-                const gameId = document.getElementById('gameIdDisplay').innerText;
-                
-                navigator.clipboard.writeText(gameId).then(() => {
-                    const copyButton = document.getElementById('copyButton');
-                    const originalText = copyButton.innerText;
-                    copyButton.innerText = '¡Copiado!';
-                    
-                    setTimeout(() => {
-                        copyButton.innerText = originalText;
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Error al copiar: ', err);
-                });
-            }
             
             function showModal(content) {
                 const modal = document.createElement('div');
