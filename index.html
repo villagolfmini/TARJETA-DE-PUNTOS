@@ -1,69 +1,111 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VillaGolf Mini</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
+            background-color: #f0f4f7;
             color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
         }
         .container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 900px;
+            width: 100%;
+            margin: 20px;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
         }
-        h1, h2 {
+        h1 {
+            color: #2c3e50;
             text-align: center;
-            color: #4CAF50;
+            font-weight: bold;
+            font-size: 2.5em;
+            margin-bottom: 0.5em;
+        }
+        h2 {
+            color: #34495e;
+            text-align: center;
+            font-size: 1.5em;
+            margin-top: 0;
+            margin-bottom: 2em;
         }
         .player-entry {
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
         .player-input-group {
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            background-color: #ecf0f1;
+            border-radius: 8px;
+            overflow: hidden;
         }
         .player-input-group input {
             flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 12px;
+            border: none;
+            background: none;
+            font-size: 1em;
+            color: #2c3e50;
+            outline: none;
+        }
+        .player-input-group input::placeholder {
+            color: #95a5a6;
         }
         .btn-add, .btn-remove {
-            margin-left: 10px;
-            padding: 8px 12px;
+            padding: 12px 18px;
             border: none;
             cursor: pointer;
-            border-radius: 4px;
+            font-size: 1.2em;
+            transition: background-color 0.3s, transform 0.2s;
         }
         .btn-add {
-            background-color: #4CAF50;
+            background-color: #27ae60;
             color: white;
         }
+        .btn-add:hover {
+            background-color: #229954;
+            transform: scale(1.05);
+        }
         .btn-remove {
-            background-color: #f44336;
+            background-color: #e74c3c;
             color: white;
+        }
+        .btn-remove:hover {
+            background-color: #c0392b;
+            transform: scale(1.05);
         }
         .start-btn {
             display: block;
             width: 100%;
-            padding: 10px;
-            background-color: #008CBA;
+            padding: 15px;
+            background-color: #3498db;
             color: white;
             text-align: center;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 1.2em;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
         }
-        .game-area {
+        .start-btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        .game-area, .results-section {
             display: none;
             margin-top: 20px;
         }
@@ -74,19 +116,68 @@
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 8px;
+            padding: 12px;
             text-align: center;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #ecf0f1;
+            color: #2c3e50;
         }
         .score-input {
-            width: 40px;
+            width: 50px;
+            padding: 5px;
             text-align: center;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+        .nav-buttons button {
+            padding: 12px 25px;
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        #previous-hole-btn {
+            background-color: #bdc3c7;
+            color: #34495e;
+        }
+        #previous-hole-btn:hover {
+            background-color: #95a5a6;
+        }
+        #next-hole-btn {
+            background-color: #27ae60;
+            color: white;
+        }
+        #next-hole-btn:hover {
+            background-color: #229954;
+        }
+        #end-game-btn {
+            background-color: #e74c3c;
+            color: white;
+            display: none;
+        }
+        #end-game-btn:hover {
+            background-color: #c0392b;
         }
         .winner {
             font-weight: bold;
-            color: #4CAF50;
+            color: #27ae60;
+            font-size: 1.5em;
+            text-align: center;
+            margin-top: 1em;
+        }
+        #winner-display {
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            color: #27ae60;
         }
     </style>
 </head>
@@ -117,14 +208,14 @@
             <tbody>
                 </tbody>
         </table>
-        <div style="text-align: center; margin-top: 20px;">
-            <button onclick="previousHole()" style="padding: 10px; background-color: #ccc; border: none; cursor: pointer;">Hoyo Anterior</button>
-            <button onclick="nextHole()" style="padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer;">Siguiente Hoyo</button>
-            <button onclick="endGame()" style="padding: 10px; background-color: #f44336; color: white; border: none; cursor: pointer; display: none;" id="end-game-btn">Finalizar Partida</button>
+        <div class="nav-buttons">
+            <button id="previous-hole-btn" onclick="previousHole()">Hoyo Anterior</button>
+            <button id="next-hole-btn" onclick="nextHole()">Siguiente Hoyo</button>
+            <button id="end-game-btn" onclick="endGame()">Finalizar Partida</button>
         </div>
     </div>
 
-    <div id="results-section" style="display: none;">
+    <div id="results-section" class="results-section">
         <h2>Resultados Finales</h2>
         <p id="winner-display"></p>
         <table id="final-score-table">
@@ -208,8 +299,16 @@
         document.getElementById('current-hole-display').textContent = `Hoyo ${currentHole}`;
         if (currentHole === HOLES_COUNT) {
             document.getElementById('end-game-btn').style.display = 'inline-block';
+            document.getElementById('next-hole-btn').style.display = 'none';
         } else {
             document.getElementById('end-game-btn').style.display = 'none';
+            document.getElementById('next-hole-btn').style.display = 'inline-block';
+        }
+        
+        if (currentHole === 1) {
+            document.getElementById('previous-hole-btn').style.display = 'none';
+        } else {
+            document.getElementById('previous-hole-btn').style.display = 'inline-block';
         }
         
         // Restore scores if available
@@ -217,10 +316,7 @@
     }
 
     function updateScore() {
-        players.forEach(player => {
-            const rowInputs = document.querySelectorAll(`[data-player="${player}"]`);
-            player.scores = Array.from(rowInputs).map(input => parseInt(input.value) || 0);
-        });
+        // No es necesario, el estado se guarda al cambiar de hoyo
     }
 
     function restoreScores() {
@@ -358,7 +454,6 @@
 
         if (response) {
             console.log('Solicitud enviada. La respuesta es opaca debido a la configuración CORS.');
-            // No podemos leer la respuesta con 'no-cors', así que asumimos éxito.
         } else {
             console.error('La solicitud no pudo ser enviada.');
         }
