@@ -194,3 +194,325 @@
                             Si la bola golpea un borde, puedes moverla 10 cm con el palo, sin penalización.<br>
                         </p>
                         <h4 class="font-bold text-lg mb-2 text-gray-700">Puntuación:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            El puntaje máximo por cada hoyo es de 8 golpes. Si después de 8 golpes no has logrado meter la bola, anota 8 puntos y pasa al siguiente hoyo.<br>
+                            Gana quien complete los 18 hoyos con el menor puntaje total.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Regla de juego con otras bolas:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            No se permite meter la bola de otro jugador. Si tu bola golpea la de otro jugador y esta entra en el hoyo, la bola golpeada debe ser devuelta a su posición original. Tu golpe sí cuenta para ti y continuas tu juego desde la posición donde se detuvo tu bola.<br>
+                            Si dos bolas quedan pegadas, la que debe jugarse (la más cercana al hoyo) se puede levantar para que la otra no la estorbe. Luego, la bola se coloca de nuevo en su lugar y se juega el golpe.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Restricciones:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            Está prohibido repetir un hoyo o jugar un hoyo adicional. Si lo haces, se considera una ronda de juego adicional.<br>
+                            Prestar un palo a otro visitante genera el cobro de un juego adicional.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Seguridad:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            Está prohibido hacer swing o levantar el palo a más de la altura de la rodilla.<br>
+                            No arrastres los palos, ni los golpees contra rocas, ladrillos o cualquier otra superficie dura que no sea la bola.<br>
+                            Los usuarios se hacen responsables de los implementos en caso de perdida o daño, y cancelarán el valor de la reposición establecido por la caja.<br>
+                            El usuario es responsable de accidentes o daños causados a instalaciones o terceros.<br>
+                            Los menores de 7 años deben jugar acompañados por un adulto responsable.<br>
+                        </p>
+                        <h4 class="font-bold text-lg mb-2 text-gray-700">Lluvia:</h4>
+                        <p class="text-left mb-2 text-gray-700">
+                            En caso de lluvia, el juego debe suspenderse. Si no has completado 9 hoyos, se te entregará un bono para otro día.<br>
+                        </p>
+                    </div>
+                `);
+            });
+            
+            endGameBtn.addEventListener('click', showWinner);
+
+            function generateUniqueId() {
+                return Math.random().toString(36).substring(2, 8).toUpperCase();
+            }
+
+            function setupScorecard(players) {
+                scorecardHead.innerHTML = '';
+                scorecardBody.innerHTML = '';
+
+                const headerRow1 = document.createElement('tr');
+                headerRow1.innerHTML = `<th rowspan="2" class="sticky-col font-semibold text-gray-900 bg-gray-200">Jugador</th>
+                                        <th colspan="9" class="font-semibold text-white bg-amber-500">Hoyos del 1 al 9</th>
+                                        <th rowspan="2" class="font-semibold bg-orange-100 text-orange-900">SUMA</th>
+                                        <th colspan="9" class="font-semibold text-white bg-amber-500">Hoyos del 10 al 18</th>
+                                        <th rowspan="2" class="font-semibold bg-orange-100 text-orange-900">SUMA</th>
+                                        <th rowspan="2" class="font-semibold bg-green-100 text-green-900">TOTAL</th>`;
+                scorecardHead.appendChild(headerRow1);
+
+                const headerRow2 = document.createElement('tr');
+                let headerHTML = '';
+                for (let i = 1; i <= 9; i++) headerHTML += `<th class="bg-gray-200 text-black">${i}</th>`;
+                for (let i = 10; i <= 18; i++) headerHTML += `<th class="bg-gray-200 text-black">${i}</th>`;
+                headerRow2.innerHTML = headerHTML;
+                scorecardHead.appendChild(headerRow2);
+                
+                players.forEach((name, index) => {
+                    const playerRow = document.createElement('tr');
+                    playerRow.id = `player-row-${index}`;
+                    playerRow.className = 'border-b border-gray-200';
+
+                    let rowHTML = `<td class="sticky-col font-bold text-left text-gray-900 bg-white" data-name="${name}">${name}</td>`;
+                    
+                    for (let i = 1; i <= 9; i++) {
+                        rowHTML += `<td class="bg-white"><input type="number" min="1" max="8" class="score-input bg-white text-black" data-player="${index}" data-hole="${i}"></td>`;
+                    }
+                    rowHTML += `<td id="out-total-${index}" class="font-bold bg-orange-100 text-orange-900">0</td>`;
+
+                    for (let i = 10; i <= 18; i++) {
+                        rowHTML += `<td class="bg-white"><input type="number" min="1" max="8" class="score-input bg-white text-black" data-player="${index}" data-hole="${i}"></td>`;
+                    }
+                    rowHTML += `<td id="in-total-${index}" class="font-bold bg-orange-100 text-orange-900">0</td>`;
+                    rowHTML += `<td id="grand-total-${index}" class="font-bold text-xl text-green-600 bg-green-50">0</td>`;
+
+                    playerRow.innerHTML = rowHTML;
+                    scorecardBody.appendChild(playerRow);
+                });
+
+                document.querySelectorAll('.score-input').forEach(input => {
+                    input.addEventListener('input', updateScores);
+                });
+            }
+
+            function updateScores(event) {
+                if (parseInt(event.target.value) > 8) {
+                    event.target.value = 8;
+                }
+
+                const playerIndex = event.target.dataset.player;
+                const playerRow = document.getElementById(`player-row-${playerIndex}`);
+                
+                let outTotal = 0;
+                let inTotal = 0;
+
+                const allInputs = playerRow.querySelectorAll('input[data-hole]');
+                allInputs.forEach(input => {
+                    const hole = parseInt(input.dataset.hole);
+                    const value = parseInt(input.value) || 0;
+                    if (hole <= 9) {
+                        outTotal += value;
+                    } else {
+                        inTotal += value;
+                    }
+                });
+
+                document.getElementById(`out-total-${playerIndex}`).textContent = outTotal;
+                document.getElementById(`in-total-${playerIndex}`).textContent = inTotal;
+                document.getElementById(`grand-total-${playerIndex}`).textContent = outTotal + inTotal;
+            }
+
+            function showWinner() {
+                const playerScores = [];
+                const rows = scorecardBody.querySelectorAll('tr');
+                const lowestScore = Infinity;
+
+                rows.forEach(row => {
+                    const nameCell = row.querySelector('td.sticky-col');
+                    const name = nameCell.dataset.name;
+                    const score = parseInt(row.querySelector('[id^="grand-total-"]').textContent);
+                    playerScores.push({ name: name, score: score });
+                });
+
+                playerScores.sort((a, b) => a.score - b.score);
+                const lowestFinalScore = playerScores.length > 0 ? playerScores[0].score : 0;
+                
+                document.querySelectorAll('.score-input').forEach(input => input.disabled = true);
+                endGameBtn.disabled = true;
+                
+                // Lógica de guardado al finalizar el juego
+                const endTime = new Date();
+                const durationMinutes = Math.round((endTime - startTime) / 60000);
+                saveGame(durationMinutes, playerScores, lowestFinalScore);
+
+                resultsSection.classList.remove('hidden');
+                resultsBody.innerHTML = '';
+                
+                playerScores.forEach((player, index) => {
+                    const playerRow = document.createElement('tr');
+                    playerRow.className = 'border-b border-gray-200';
+                    const position = index + 1;
+                    
+                    let playerNameHTML = player.name;
+                    let nameCellClass = "font-bold text-left text-gray-900";
+                    
+                    if (player.score === lowestFinalScore) {
+                        playerNameHTML += ` <span class="trophy" title="Ganador">🏆</span>`;
+                        nameCellClass += " winner-name";
+                    }
+                    
+                    playerRow.innerHTML = `
+                        <td class="sticky-col font-bold text-left text-gray-900 bg-white">${position}</td>
+                        <td class="${nameCellClass}">${playerNameHTML}</td>
+                        <td class="font-bold">${player.score}</td>
+                    `;
+                    resultsBody.appendChild(playerRow);
+                });
+            }
+            
+            function loadGame() {
+                const gameId = gameIdInput.value.trim();
+                if (!gameId) {
+                    showModal('Por favor, ingresa un código de partida.');
+                    return;
+                }
+
+                fetch(`${webAppUrl}?game_id=${gameId}`, { method: 'GET', mode: 'cors' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'error' || !data.nombres_jugadores || !data.puntajes_hoyos) {
+                            showModal(`Error: ${data.message || 'No se pudo cargar la partida. Verifica el código.'}`);
+                            return;
+                        }
+                        
+                        currentGameId = data.game_id;
+                        startTime = new Date(data.hora_inicio);
+                        const playerNames = data.nombres_jugadores.split(', ');
+                        const scoresPerPlayer = data.puntajes_hoyos.split(';').map(s => s.split(',').map(Number));
+                        
+                        setupScorecard(playerNames);
+                        
+                        scoresPerPlayer.forEach((scores, playerIndex) => {
+                            scores.forEach((score, holeIndex) => {
+                                const input = document.querySelector(`input[data-player="${playerIndex}"][data-hole="${holeIndex + 1}"]`);
+                                if (input) {
+                                    input.value = score;
+                                }
+                            });
+                        });
+                        
+                        document.querySelectorAll('.score-input').forEach(input => updateScores({target: input}));
+
+                        gameIdDisplay.textContent = `${currentGameId}`;
+                        setupSection.classList.add('hidden');
+                        loadSection.classList.add('hidden');
+                        scorecardSection.classList.remove('hidden');
+                        endGameContainer.classList.remove('hidden');
+                        endGameBtn.disabled = false;
+                        
+                        showModal('Partida cargada exitosamente. Continúa jugando.');
+                    })
+                    .catch(error => {
+                        console.error('Error al cargar la partida:', error);
+                        showModal('No se pudo cargar la partida. Verifica el código.');
+                    });
+            }
+
+            function saveGame(durationMinutes, playerScores, lowestFinalScore) {
+                const allHoleScores = [];
+                const rows = scorecardBody.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const scores = [];
+                    row.querySelectorAll('.score-input').forEach(input => {
+                        scores.push(parseInt(input.value) || 0);
+                    });
+                    allHoleScores.push(scores.join(','));
+                });
+
+                const finalData = {
+                    game_id: currentGameId,
+                    fecha: new Date().toLocaleDateString('es-ES'),
+                    hora_inicio: startTime.toLocaleTimeString('es-ES'),
+                    hora_fin: new Date().toLocaleTimeString('es-ES'),
+                    duracion_minutos: durationMinutes,
+                    nombres_jugadores: playerScores.map(p => p.name).join(', '),
+                    puntajes_hoyos: allHoleScores.join(';'),
+                    puntajes_finales: playerScores.map(p => p.score).join(', '),
+                    ganador: playerScores[0].score === lowestFinalScore ? playerScores[0].name : 'Empate'
+                };
+
+                fetch(webAppUrl, {
+                    method: 'POST',
+                    body: JSON.stringify(finalData),
+                    headers: { 'Content-Type': 'application/json' },
+                    mode: 'no-cors'
+                })
+                .then(response => console.log('Datos guardados correctamente.'))
+                .catch(error => console.error('Error al guardar datos:', error));
+            }
+            
+            sendWhatsappBtn.addEventListener('click', sendToWhatsApp);
+
+            function sendToWhatsApp() {
+                const resultsTable = document.getElementById('results-body');
+                let message = "¡Resultados de Villagolf Golfito!\n\n";
+                
+                const rows = resultsTable.querySelectorAll('tr');
+                rows.forEach(row => {
+                    const position = row.children[0].textContent;
+                    const playerName = row.children[1].textContent.replace(' 🏆', '').trim();
+                    const score = row.children[2].textContent;
+                    message += `${position}. ${playerName}: ${score} puntos\n`;
+                });
+
+                message += `\n¡Gracias por elegirnos! Comparte tu opinión de tu visita a villagolf, en https://g.page/r/CdgoCw4lsr0rEAE/review\nComo muestra de nuestro aprecio, disfruta de un bono de cortesía.\n¡Esperamos verte pronto!`;
+                
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+                window.open(whatsappUrl, '_blank');
+            }
+
+            // ACTUALIZACIÓN: Se agrega la función para copiar al portapapeles
+            function copyGameId() {
+                const gameId = document.getElementById('gameIdDisplay').innerText;
+                
+                navigator.clipboard.writeText(gameId).then(() => {
+                    const copyButton = document.getElementById('copyButton');
+                    const originalText = copyButton.innerText;
+                    copyButton.innerText = '¡Copiado!';
+                    
+                    setTimeout(() => {
+                        copyButton.innerText = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Error al copiar: ', err);
+                });
+            }
+            
+            function showModal(content) {
+                const modal = document.createElement('div');
+                modal.style.position = 'fixed';
+                modal.style.left = '0';
+                modal.style.top = '0';
+                modal.style.width = '100%';
+                modal.style.height = '100%';
+                modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                modal.style.display = 'flex';
+                modal.style.justifyContent = 'center';
+                modal.style.alignItems = 'center';
+                modal.style.zIndex = '1000';
+                modal.style.padding = '1rem';
+                
+                const modalContent = document.createElement('div');
+                modalContent.style.backgroundColor = 'white';
+                modalContent.style.padding = '20px 40px';
+                modalContent.style.borderRadius = '8px';
+                modalContent.style.textAlign = 'center';
+                modalContent.style.maxHeight = '90vh';
+                modalContent.style.overflowY = 'auto';
+
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'Cerrar';
+                closeButton.style.marginTop = '20px';
+                closeButton.style.padding = '10px 20px';
+                closeButton.style.border = 'none';
+                closeButton.style.borderRadius = '5px';
+                closeButton.style.backgroundColor = '#10B981';
+                closeButton.style.color = 'white';
+                closeButton.style.cursor = 'pointer';
+
+                modalContent.innerHTML = content;
+                modalContent.appendChild(closeButton);
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+                
+                closeButton.onclick = () => { document.body.removeChild(modal); };
+                modal.onclick = (event) => { if (event.target === modal) { document.body.removeChild(modal); } };
+            }
+        });
+    </script>
+</body>
+</html>
