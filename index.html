@@ -28,7 +28,7 @@
     <div class="container mx-auto p-4 max-w-7xl">
         <header class="text-center mb-6">
             <h1 class="text-3xl md:text-4xl font-bold uppercase tracking-wider" style="font-family: 'Anton', sans-serif; color: #e60a0a;">Tarjeta de Juego</h1>
-            <img src="./images/villagolf-logo.png" alt="Villagolf Minigolf" class="mx-auto mt-2 h-12">
+            <p class="text-red-600 font-bold text-lg mt-1">VILLAGOLF GOLFITO</p>
         </header>
 
         <div id="setup-section" class="bg-white p-6 rounded-xl shadow-lg mb-8">
@@ -53,7 +53,10 @@
         <div id="scorecard-section" class="hidden">
             <div class="flex justify-between items-center mb-4 flex-wrap gap-4">
                 <h2 class="text-2xl font-semibold text-gray-700">Tarjeta de Puntuación</h2>
-                <span id="game-id-display" class="font-bold text-gray-600">ID:</span>
+                <div class="flex items-center space-x-4">
+                    <span id="game-id-display" class="font-bold text-gray-600">ID:</span>
+                    <span id="timer-display" class="font-bold text-amber-600 bg-amber-50 px-3 py-1 rounded-full border border-amber-200 text-sm">Tiempo restante: --:--</span>
+                </div>
             </div>
             <div class="table-container bg-white rounded-xl shadow-lg">
                 <table class="w-full text-center">
@@ -112,11 +115,13 @@
     </footer>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // ... existing variables ...
             const playerInputsContainer = document.getElementById('player-inputs');
             const startGameBtn = document.getElementById('start-game-btn');
             const loadGameBtn = document.getElementById('load-game-btn');
             const gameIdInput = document.getElementById('game-id-input');
             const gameIdDisplay = document.getElementById('game-id-display');
+            const timerDisplay = document.getElementById('timer-display');
             const setupSection = document.getElementById('setup-section');
             const loadSection = document.getElementById('load-game-section');
             const scorecardSection = document.getElementById('scorecard-section');
@@ -130,18 +135,90 @@
             const sendWhatsappBtn = document.getElementById('send-whatsapp-btn');
             const rulesBtn = document.getElementById('rules-btn');
 
-            let startTime;
+            let startTime; // Guardará la fecha en milisegundos (timestamp)
             let currentGameId = null;
             let isSaving = false;
             let saveTimeout;
 
-            // REEMPLAZA ESTE URL con el URL de tu Google Apps Script
+            // Variables para los temporizadores de inactividad y límite de tiempo
+            let inactivityTimer = null;
+            let gameTimerInterval = null;
+            let allocatedMinutes = 0;
+            let warningTriggered = false;
+            let hasEnteredAnyScore = false;
+
+            // URL del Google Apps Script
             const webAppUrl = 'https://script.google.com/macros/s/AKfycbyCuyyk7qbO7Py6V4hcAWrbgL9_08-1kqt4r5v0DTkR8J0Osm2KsFZK8q9GhUlk8Vm4ig/exec';
 
             for (let i = 1; i <= 8; i++) {
                 const inputDiv = document.createElement('div');
                 inputDiv.innerHTML = `<label for="player${i}" class="block text-sm font-medium text-gray-700">Jugador ${i}</label><input type="text" id="player${i}" name="player${i}" placeholder="Nombre del Jugador ${i}" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 focus:bg-[#12bf33] focus:text-white sm:text-sm">`;
                 playerInputsContainer.appendChild(inputDiv);
+            }
+
+            // Calcula el tiempo límite según la cantidad de jugadores
+            function calculateGameDuration(numPlayers) {
+                switch (numPlayers) {
+                    case 1:
+                    case 2:
+                        return 45;   // 1-2 jugadores: 45 min
+                    case 3:
+                        return 55;   // 3 jugadores: 55 min
+                    case 4:
+                        return 80;   // 4 jugadores: 1 hora 20 min (80 min)
+                    case 5:
+                        return 90;   // 5 jugadores: 1 hora 30 min (90 min)
+                    case 6:
+                        return 100;  // 6 jugadores: 1 hora 40 min (100 min)
+                    case 7:
+                        return 120;  // 7 jugadores: 2 horas (120 min)
+                    case 8:
+                    default:
+                        return 140;  // 8 jugadores: 2 horas 20 min (140 min)
+                }
+            }
+
+            // Verifica si pasaron 5 minutos sin ingresar puntuación
+            function startInactivityCheck() {
+                if (inactivityTimer) clearTimeout(inactivityTimer);
+                hasEnteredAnyScore = false;
+                
+                inactivityTimer = setTimeout(() => {
+                    if (!hasEnteredAnyScore) {
+                        showModal('⚠️ No has registrado tu Puntuación. Recuerda anotar los golpes de cada hoyo.');
+                    }
+                }, 5 * 60 * 1000);
+            }
+
+            // Inicia el contador regresivo del tiempo total de juego
+            function startGameTimers(numPlayers) {
+                allocatedMinutes = calculateGameDuration(numPlayers);
+                warningTriggered = false;
+
+                if (gameTimerInterval) clearInterval(gameTimerInterval);
+
+                gameTimerInterval = setInterval(() => {
+                    const now = Date.now();
+                    const diffMs = (now - startTime);
+                    const totalAllowedMs = allocatedMinutes * 60 * 1000;
+                    const remainingMs = totalAllowedMs - diffMs;
+
+                    if (remainingMs <= 0) {
+                        timerDisplay.textContent = "Tiempo Agotado";
+                        timerDisplay.className = "font-bold text-red-600 bg-red-100 px-3 py-1 rounded-full border border-red-300 text-sm";
+                    } else {
+                        const totalSecs = Math.floor(remainingMs / 1000);
+                        const mins = Math.floor(totalSecs / 60);
+                        const secs = totalSecs % 60;
+                        timerDisplay.textContent = `Tiempo restante: ${mins}:${secs < 10 ? '0' : ''}${secs}`;
+
+                        // Alerta a los 10 minutos antes del límite
+                        if (remainingMs <= 10 * 60 * 1000 && !warningTriggered) {
+                            warningTriggered = true;
+                            showModal('⏳ Tu partida está por terminar, quedan 10 minutos. Después se cobrará la tarifa de la segunda Ronda.');
+                        }
+                    }
+                }, 1000);
             }
 
             startGameBtn.addEventListener('click', function() {
@@ -154,7 +231,7 @@
                 }
                 if (playerNames.length > 0) {
                     currentGameId = generateUniqueId();
-                    startTime = new Date();
+                    startTime = Date.now(); // Guardamos el timestamp numérico
                     gameIdDisplay.textContent = `ID de Partida: ${currentGameId}`;
                     setupScorecard(playerNames);
                     setupSection.classList.add('hidden');
@@ -162,8 +239,11 @@
                     scorecardSection.classList.remove('hidden');
                     endGameContainer.classList.remove('hidden');
                     endGameBtn.disabled = false;
-                    showModal(`¡Partida iniciada! Tu código es: ${currentGameId}`);
-                    // Guarda la partida inicial al empezar el juego
+                    
+                    startInactivityCheck();
+                    startGameTimers(playerNames.length);
+
+                    showModal(`¡Partida iniciada! Tu código es: ${currentGameId}<br><small class="text-gray-500">Tiempo límite asignado: ${allocatedMinutes} minutos.</small>`);
                     saveGame(false);
                 } else {
                     showModal('Por favor, ingresa el nombre de al menos un jugador.');
@@ -174,10 +254,13 @@
 
             resetGameBtn.addEventListener('click', function() {
                 if (confirm('¿Estás seguro de que quieres empezar un nuevo juego? Se perderán todas las puntuaciones.')) {
+                    if (inactivityTimer) clearTimeout(inactivityTimer);
+                    if (gameTimerInterval) clearInterval(gameTimerInterval);
                     window.location.reload();
                 }
             });
 
+            // ... existing rulesBtn event listener ...
             rulesBtn.addEventListener('click', function() {
                 showModal(`
                     <div class="bg-white p-6 rounded-md text-gray-800">
@@ -277,15 +360,19 @@
                 });
             }
 
-            // --- Nuevo: Funcion para detectar cambios y guardar con retraso (debounce) ---
             function updateAndSave(event) {
-                updateScores(event); // Primero actualiza los totales
+                hasEnteredAnyScore = true;
+                if (inactivityTimer) {
+                    clearTimeout(inactivityTimer);
+                }
+
+                updateScores(event);
                 if (saveTimeout) {
                     clearTimeout(saveTimeout);
                 }
                 saveTimeout = setTimeout(() => {
-                    saveGame(false); // Luego guarda con la bandera de "no es final"
-                }, 2000); // 2 segundos de retraso
+                    saveGame(false);
+                }, 2000);
             }
 
             function updateScores(event) {
@@ -316,9 +403,11 @@
             }
 
             function showWinner() {
+                if (inactivityTimer) clearTimeout(inactivityTimer);
+                if (gameTimerInterval) clearInterval(gameTimerInterval);
+
                 const playerScores = [];
                 const rows = scorecardBody.querySelectorAll('tr');
-                const lowestScore = Infinity;
 
                 rows.forEach(row => {
                     const nameCell = row.querySelector('td.sticky-col');
@@ -333,7 +422,6 @@
                 endGameBtn.disabled = true;
                 endGameBtn.textContent = 'Partida Finalizada';
                 
-                // Lógica de guardado al finalizar el juego (con la bandera de "es final")
                 saveGame(true, playerScores, lowestFinalScore);
 
                 resultsSection.classList.remove('hidden');
@@ -377,17 +465,36 @@
                         }
                         
                         currentGameId = data.game_id;
-                        startTime = new Date(data.hora_inicio);
+
+                        // Validar si la hora ingresada es numérica o formato texto y convertirla adecuadamente a timestamp
+                        if (data.hora_inicio && !isNaN(Number(data.hora_inicio))) {
+                            startTime = Number(data.hora_inicio);
+                        } else if (data.hora_inicio) {
+                            // Si proviene en texto tipo "HH:MM:SS"
+                            const today = new Date();
+                            const parts = data.hora_inicio.split(':');
+                            if (parts.length >= 2) {
+                                today.setHours(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2] || 0));
+                                startTime = today.getTime();
+                            } else {
+                                startTime = Date.now();
+                            }
+                        } else {
+                            startTime = Date.now();
+                        }
+
                         const playerNames = data.nombres_jugadores.split(', ');
                         const scoresPerPlayer = data.puntajes_hoyos.split(';').map(s => s.split(',').map(val => val === '' ? 0 : Number(val)));
                         
                         setupScorecard(playerNames);
                         
+                        let hasScoresLoaded = false;
                         scoresPerPlayer.forEach((scores, playerIndex) => {
                             scores.forEach((score, holeIndex) => {
                                 const input = document.querySelector(`input[data-player="${playerIndex}"][data-hole="${holeIndex + 1}"]`);
                                 if (input) {
                                     input.value = score === 0 ? '' : score;
+                                    if (score > 0) hasScoresLoaded = true;
                                 }
                             });
                         });
@@ -403,6 +510,11 @@
                         endGameContainer.classList.remove('hidden');
                         endGameBtn.disabled = false;
                         
+                        if (!hasScoresLoaded) {
+                            startInactivityCheck();
+                        }
+                        startGameTimers(playerNames.length);
+
                         showModal('Partida cargada exitosamente. Continúa jugando.');
                     })
                     .catch(error => {
@@ -411,7 +523,6 @@
                     });
             }
 
-            // --- Nuevo: Funcion de guardado, ahora recibe un argumento para indicar si es el guardado final ---
             function saveGame(isFinal, playerScores, lowestFinalScore) {
                 const allPlayerNames = [];
                 const allHoleScores = [];
@@ -433,19 +544,22 @@
                     finalScores.push(totalScore);
                 });
 
-                // Si es el guardado final, calcula la duración
-                const durationMinutes = isFinal ? Math.round((new Date() - startTime) / 60000) : '';
+                // Cálculo correcto y seguro de minutos transcurridos
+                const elapsedMinutes = Math.max(0, Math.round((Date.now() - startTime) / 60000));
+                const durationMinutes = isFinal ? elapsedMinutes : '';
+
+                const startDateObj = new Date(startTime);
 
                 const finalData = {
                     game_id: currentGameId,
-                    fecha: new Date().toLocaleDateString('es-ES'),
-                    hora_inicio: startTime.toLocaleTimeString('es-ES'),
+                    fecha: startDateObj.toLocaleDateString('es-ES'),
+                    hora_inicio: startDateObj.toLocaleTimeString('es-ES'),
                     hora_fin: isFinal ? new Date().toLocaleTimeString('es-ES') : '',
                     duracion_minutos: durationMinutes,
                     nombres_jugadores: allPlayerNames.join(', '),
                     puntajes_hoyos: allHoleScores.join(';'),
                     puntajes_finales: finalScores.join(', '),
-                    ganador: isFinal ? playerScores[0].score === lowestFinalScore ? playerScores[0].name : 'Empate' : ''
+                    ganador: isFinal ? (playerScores[0].score === lowestFinalScore ? playerScores[0].name : 'Empate') : ''
                 };
 
                 fetch(webAppUrl, {
@@ -517,13 +631,27 @@
                 closeButton.style.color = 'white';
                 closeButton.style.cursor = 'pointer';
 
-                modalContent.innerHTML = content;
+                if (typeof content === 'string' && !content.trim().startsWith('<')) {
+                    const p = document.createElement('p');
+                    p.innerHTML = content;
+                    p.style.color = 'black';
+                    modalContent.appendChild(p);
+                } else {
+                    modalContent.innerHTML = content;
+                }
+
                 modalContent.appendChild(closeButton);
                 modal.appendChild(modalContent);
                 document.body.appendChild(modal);
                 
-                closeButton.onclick = () => { document.body.removeChild(modal); };
-                modal.onclick = (event) => { if (event.target === modal) { document.body.removeChild(modal); } };
+                closeButton.onclick = () => {
+                    document.body.removeChild(modal);
+                };
+                modal.onclick = (event) => {
+                    if (event.target === modal) {
+                        document.body.removeChild(modal);
+                    }
+                };
             }
         });
     </script>
